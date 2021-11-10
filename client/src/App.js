@@ -8,6 +8,8 @@ function App() {
   const [email, setEmail] = useState("");
   const [mobileNo, setMobileNo] = useState("");
   const [dept, setDept] = useState("");
+  const [tyoe, setType] = useState("");
+
 
   const submitForm = () => {
     //Axios.post("http://localhost/3001/", );
