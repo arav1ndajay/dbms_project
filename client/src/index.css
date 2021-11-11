@@ -58,21 +58,22 @@ html {
   padding-bottom: 10px;
 }
 
-.container form .emp-details {
+.container form .inputdetails {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   margin: 3px 0 12px 0;
 }
 
-form .emp-details .input-box {
+form .inputdetails .input-box {
   display: flex;
   flex-direction: column;
   margin-bottom: 10px;
-  width: calc(100% / 2 - 20px);
+  /* width: calc(100% / 2 - 20px); */
+  width: 100%;
 }
 
-.emp-details .input-box input {
+.inputdetails .input-box input {
   height: 40px;
   max-width: 100%;
   outline: none;
@@ -86,11 +87,11 @@ form .emp-details .input-box {
   transition: all 0.3s ease;
 }
 
-.emp-details .input-box input:focus {
+.inputdetails .input-box input:focus {
   border-color: rgb(164, 121, 182);
 }
 
-.emp-details .input-box .label {
+.inputdetails .input-box .label {
   display: block;
   margin-bottom: 5px;
   font-size: 18px;
@@ -131,12 +132,23 @@ button a {
   text-decoration: none;
 }
 
+select {
+  background-color: #504d54;
+  color: white;
+  border: none;
+  padding: 5px;
+}
+option {
+  background-color: #504d54;
+  color: white;
+}
+
 .error {
   color: rgb(241, 71, 71);
   margin-top: 0;
 }
 
-.emp-details table {
+.inputdetails table {
   font-size: 20px;
   margin-bottom: 10px;
   padding-right: 10px;
@@ -147,16 +159,16 @@ button a {
   .container {
     max-width: 100%;
   }
-  form .emp-details .input-box {
+  form .inputdetails .input-box {
     margin-bottom: 10px;
     width: 100%;
   }
-  .container form .emp-details {
+  .container form .inputdetails {
     max-height: 300px;
     overflow-y: scroll;
   }
 
-  .emp-details::-webkit-scrollbar {
+  .inputdetails::-webkit-scrollbar {
     width: 0;
   }
 }
