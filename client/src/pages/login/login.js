@@ -1,15 +1,22 @@
 import "../../App.css";
 import Axios from "axios";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import AdminProfile from "../admin/adminprofile";
+import { Navigate } from "react-router-dom";
 
 function Login() {
   const [role, setRole] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loginStatus, setLoginStatus] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loginStatus, setLoginStatus] = useState("loading");
+
+  Axios.defaults.withCredentials = true;
 
   const loginUser = (event) => {
     event.preventDefault();
+
+    setLoginStatus("loading");
 
     Axios.post("http://localhost:3001/login", {
       email: email,
@@ -17,13 +24,29 @@ function Login() {
       password: password,
     }).then((response) => {
       if (response.data.message) {
-        setLoginStatus(response.data.message);
+        setLoginError(response.data.message);
+        setLoginStatus("false");
       } else {
-        setLoginStatus(response.data[0].Email);
+        setLoginStatus("true");
       }
       console.log(response.data);
     });
   };
+
+  useEffect(() => {
+    Axios.get("http://localhost:3001/login").then((response) => {
+      if (response.data.loggedIn) {
+        console.log(response.data.user);
+        setLoginStatus("true");
+      } else {
+        setLoginStatus("false");
+      }
+    });
+  }, []);
+
+  if (loginStatus === "loading")
+    return <div style={{ color: "red" }}>Loading...</div>;
+  else if (loginStatus === "true") return <Navigate to="/adminprofile" />;
 
   return (
     <div className="container">
@@ -31,7 +54,7 @@ function Login() {
         <div className="header">
           <h2>Login</h2>
         </div>
-        <form method="post">
+        <form method="POST">
           <div className="inputdetails">
             <div className="input-box">
               <label className="label">Role</label>
@@ -71,12 +94,12 @@ function Login() {
           <div className="button-holder">
             <p>
               Not registered?
-              <a href="login.php">
+              <a href="/register">
                 <b> Register </b>
               </a>
             </p>
           </div>
-          <p>{loginStatus}</p>
+          <p style={{ color: "#ed5c49" }}>{loginError}</p>
         </form>
       </div>
     </div>

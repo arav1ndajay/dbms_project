@@ -63,6 +63,8 @@ html {
   flex-wrap: wrap;
   justify-content: space-between;
   margin: 3px 0 12px 0;
+  max-height: 500px;
+  overflow-y: scroll;
 }
 
 form .inputdetails .input-box {
@@ -155,6 +157,10 @@ option {
   width: 100%;
 }
 
+.inputdetails::-webkit-scrollbar {
+  width: 0px;
+}
+
 @media (max-width: 584px) {
   .container {
     max-width: 100%;
@@ -166,9 +172,5 @@ option {
   .container form .inputdetails {
     max-height: 300px;
     overflow-y: scroll;
-  }
-
-  .inputdetails::-webkit-scrollbar {
-    width: 0;
   }
 }
