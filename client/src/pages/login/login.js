@@ -19,24 +19,22 @@ function Login() {
 
     Axios.post("http://localhost:3001/login", {
       email: email,
-      role: "admin",
+      role: role,
       password: password,
     }).then((response) => {
       if (response.data.message) {
         setLoginError(response.data.message);
         setLoginStatus("false");
-      } else {
-        setLoginStatus("true");
+      } else if (response.data.user !== undefined) {
+        setLoginStatus(response.data.user[0].Role);
       }
-      console.log(response.data);
     });
   };
 
   useEffect(() => {
     Axios.get("http://localhost:3001/login").then((response) => {
       if (response.data.loggedIn) {
-        console.log(response.data.user);
-        setLoginStatus("true");
+        setLoginStatus(response.data.user[0].Role);
       } else {
         setLoginStatus("false");
       }
@@ -45,7 +43,12 @@ function Login() {
 
   if (loginStatus === "loading")
     return <div style={{ color: "red" }}>Loading...</div>;
-  else if (loginStatus === "true") return <Navigate to="/adminprofile" />;
+  else if (loginStatus === "admin") return <Navigate to="/adminprofile" />;
+  else if (loginStatus === "gardener")
+    return <Navigate to="/gardenerprofile" />;
+  else if (loginStatus === "mechanic")
+    return <Navigate to="/mechanicprofile" />;
+  else if (loginStatus === "guest") return <Navigate to="/guestprofile" />;
 
   return (
     <div className="container">
@@ -64,9 +67,12 @@ function Login() {
                 onChange={(e) => setRole(e.target.value)}
               >
                 <option value="customer">Customer</option>
-                <option value="tenant">Tenant</option>
+                <option value="guest">Guest</option>
                 <option value="gardener">Gardener</option>
                 <option value="admin">Admin</option>
+                <option value="mechanic">Mechanic</option>
+                <option value="staff">Staff</option>
+                <option value="shopkeeper">Shopkeeper</option>
               </select>
             </div>
             <div className="input-box">

@@ -12,6 +12,7 @@ function AdminProfile() {
   const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
   const [userDetailsLoading, setUserDetailsLoading] = useState(true);
+  //const [role, setRole] = useState("");
 
   const [unverifiedUsers, setUnverifiedUsers] = useState([]);
   const { isOpen, toggle } = useSidebar();
@@ -24,10 +25,12 @@ function AdminProfile() {
   Axios.defaults.withCredentials = true;
 
   useEffect(() => {
+    console.log("Checking login use effect");
     Axios.get("http://localhost:3001/login").then((response) => {
       if (response.data.loggedIn) {
         setEmail(response.data.user[0].Email);
-        setLoginStatus("true");
+        //setLoginStatus("true");
+        setLoginStatus(response.data.user[0].Role);
       } else {
         setLoginStatus("false");
       }
@@ -35,14 +38,18 @@ function AdminProfile() {
   }, []);
 
   useEffect(() => {
-    setUserDetailsLoading(true);
-    console.log("Called use effect");
+    if (loginStatus === "admin") {
+      console.log("Getting details use effect");
+      setUserDetailsLoading(true);
 
-    Axios.post("http://localhost:3001/getUserDetails", {}).then((response) => {
-      setUnverifiedUsers(response.data);
-      setUserDetailsLoading(false);
-    });
-  }, []);
+      Axios.post("http://localhost:3001/getUserDetails", {}).then(
+        (response) => {
+          setUnverifiedUsers(response.data);
+          setUserDetailsLoading(false);
+        }
+      );
+    }
+  }, [loginStatus]);
 
   const logoutUser = (event) => {
     event.preventDefault();
@@ -69,7 +76,7 @@ function AdminProfile() {
       );
 
       setUsersToVerify([]);
-      
+
       setUnverifiedUsers(newUsers);
 
       setUserDetailsLoading(false);
@@ -88,7 +95,7 @@ function AdminProfile() {
 
   if (loginStatus === "loading")
     return <h1 style={{ color: "red" }}>Loading profile...</h1>;
-  else if (loginStatus === "false") return <Navigate to="/" />;
+  else if (loginStatus !== "admin") return <Navigate to="/" />;
 
   return (
     <div>

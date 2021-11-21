@@ -28,7 +28,7 @@ const NavBar = ({ toggle }) => {
             <NavLinks to="/marketadmin">Market</NavLinks>
           </NavMenuItem>
           <NavMenuItem>
-            <NavLinks to="/gardenadmin">Landscaping</NavLinks>
+            <NavLinks to="/landscapingadmin">Landscaping</NavLinks>
           </NavMenuItem>
         </NavMenu>
       </NavbarContainer>
