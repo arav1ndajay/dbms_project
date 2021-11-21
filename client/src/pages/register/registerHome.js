@@ -21,6 +21,21 @@ function RegisterHome() {
     });
   }, []);
 
+  const registerUser = (event) => {
+    event.preventDefault();
+
+    if (role === "admin") {
+      Axios.post("http://localhost:3001/registerAdmin", {
+        email: email,
+        role: "admin",
+        password: password,
+        confirmPassword: confirmPassword
+      }).then((response) => {
+        console.log(response);
+      });
+    }
+  };
+
   if (loginStatus) return <Navigate to="/adminprofile" />;
 
   return (
@@ -74,16 +89,17 @@ function RegisterHome() {
               />
             </div>
 
-            <div className="input-box">
-              <label className="label">Name</label>
-              <input
-                type="text"
-                name="name"
-                placeholder="Enter your name"
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-
+            {role !== "admin" && (
+              <div className="input-box">
+                <label className="label">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Enter your name"
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            )}
             <div className="input-box">
               <label className="label">Password</label>
               <input
@@ -104,13 +120,13 @@ function RegisterHome() {
             </div>
           </div>
           <div className="button-holder">
-            <button>Register</button>
+            <button onClick={(e) => registerUser(e)}>Register</button>
           </div>
           <div className="button-holder">
             <p>
-              Not registered?
-              <a href="/register">
-                <b> Register </b>
+              Already registered?
+              <a href="/login">
+                <b> Login </b>
               </a>
             </p>
           </div>

@@ -44,7 +44,12 @@ const db = mysql.createConnection({
 app.post("/registerAdmin", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  const confirmPassword = req.body.confirmPassword;
   const role = req.body.role;
+
+  if(password != confirmPassword){
+    res.send({error: "Passwords do not match! Please try again."});
+  }
 
   bcrypt.hash(password, saltRounds, (err, hash) => {
     if (err) {
@@ -54,7 +59,11 @@ app.post("/registerAdmin", (req, res) => {
         "INSERT INTO users (Email, Role, Password) VALUES (?,?,?)",
         [email, role, hash],
         (err, result) => {
-          console.log(err);
+          if(err){
+            res.send({error: "An error occurrred. Please try again."})
+          } else{
+            res.send({message: "Registered successfully!"});
+          }
         }
       );
     }
@@ -86,9 +95,16 @@ app.post("/login", (req, res) => {
         } else if (result.length > 0) {
           bcrypt.compare(password, result[0].Password, (error, res2) => {
             if (res2) {
-              req.session.user = result;
-              console.log(req.session.user);
-              res.send(result);
+              if (result[0].Verified == 0) {
+                res.send({
+                  message:
+                    "Admins have not verified this account. Please try again later.",
+                });
+              } else {
+                req.session.user = result;
+                console.log(req.session.user);
+                res.send(result);
+              }
             } else {
               res.send({ message: "Incorrect email/password combination." });
             }
@@ -106,6 +122,45 @@ app.post("/logout", (req, res) => {
   res.clearCookie("email");
   res.send("done");
   console.log("Logged out!");
+});
+
+app.post("/getUserDetails", (req, res) => {
+  if (req.session.user[0].Role == "admin") {
+    db.query(
+      "SELECT UID, Email, Role, Verified FROM users WHERE Verified = 0",
+      (err, result) => {
+        if (err) {
+          res.send({ message: "Error occurred. Please try again" });
+        } else {
+          console.log(result);
+          res.send(result);
+        }
+      }
+    );
+  } else {
+    res.send({ message: "Administrator privileges required." });
+  }
+});
+
+app.post("/verifyUsers", (req, res) => {
+  const usersToVerify = req.body.usersToVerify;
+
+  if (req.session.user[0].Role == "admin") {
+    db.query(
+      "UPDATE users SET Verified = true WHERE UID IN (?)",
+      [usersToVerify],
+      (err, result) => {
+        if (err) {
+          res.send({ message: err.sqlMessage });
+        } else {
+          console.log(result);
+          res.send({ message: "Users successfully verified!" });
+        }
+      }
+    );
+  } else {
+    res.send({ message: "Administrator privileges required." });
+  }
 });
 
 app.listen(3001, () => {

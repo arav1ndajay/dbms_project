@@ -1,7 +1,6 @@
 import "../../App.css";
 import Axios from "axios";
 import { useState, useEffect } from "react";
-import AdminProfile from "../admin/adminprofile";
 import { Navigate } from "react-router-dom";
 
 function Login() {
@@ -94,7 +93,7 @@ function Login() {
           <div className="button-holder">
             <p>
               Not registered?
-              <a href="/register">
+              <a href="/registerhome">
                 <b> Register </b>
               </a>
             </p>
