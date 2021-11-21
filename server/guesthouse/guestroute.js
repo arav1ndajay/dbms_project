@@ -1,9 +1,9 @@
 module.exports = function (app, db) {
-  app.post("/getMyBookings", (req, res) => {
+  app.post("/getAvailableRooms", (req, res) => {
     if (req.session.user !== undefined) {
       if (req.session.user[0].Role == "guest") {
         db.query(
-          "SELECT UID, Email, Role, Verified FROM users WHERE Verified = 0",
+          "SELECT RoomID, Rent, Category FROM room WHERE RoomID NOT IN (SELECT RoomID FROM RoomBookings)",
           (err, result) => {
             if (err) {
               res.send({ message: "Error occurred. Please try again" });
@@ -20,25 +20,43 @@ module.exports = function (app, db) {
       res.send({ message: "No session found" });
     }
   });
+  app.post("/bookRoom", (req, res) => {
+    const roomID = req.body.roomID;
+    const dateOfBooking = req.body.dateOfBooking;
+    const startDate = req.body.startDate;
+    const endDate = req.body.endDate;
+    var GID;
 
-  app.post("/verifyUsers", (req, res) => {
-    const usersToVerify = req.body.usersToVerify;
-
-    if (req.session.user[0].Role == "admin") {
-      db.query(
-        "UPDATE users SET Verified = true WHERE UID IN (?)",
-        [usersToVerify],
-        (err, result) => {
-          if (err) {
-            res.send({ message: err.sqlMessage });
-          } else {
-            console.log(result);
-            res.send({ message: "User(s) successfully verified!" });
+    if (req.session.user !== undefined) {
+      if (req.session.user[0].Role == "guest") {
+        db.query(
+          "SELECT GID FROM guest WHERE Email = ?",
+          [req.session.user[0].Email],
+          (err, result) => {
+            if (err) {
+              res.send({ message: "Error occurred. Please try again" });
+            } else {
+              GID = result[0].GID;
+              db.query(
+                "INSERT INTO roombookings (RoomID, GID, DateOfBooking, StartDate, EndDate) VALUES (?, ?, ?, ?, ?);",
+                [roomID, GID, dateOfBooking, startDate, endDate],
+                (err, result) => {
+                  if (err) {
+                    res.send({ message: "Error occurred. Please try again" });
+                  } else {
+                    console.log(result);
+                    res.send({ message: "Room booked successfully!" });
+                  }
+                }
+              );
+            }
           }
-        }
-      );
+        );
+      } else {
+        res.send({ message: "You are not a guest." });
+      }
     } else {
-      res.send({ message: "Administrator privileges required." });
+      res.send({ message: "No session found." });
     }
   });
 };
