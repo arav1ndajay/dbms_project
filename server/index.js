@@ -36,6 +36,7 @@ require("./auth/loginroute")(app, db);
 require("./auth/registerroute")(app, db);
 require("./admin/userverifroute")(app, db);
 require("./guesthouse/guestroute")(app, db);
+require("./admin/guestadminroute")(app, db);
 
 app.listen(3001, () => {
   console.log("Running on port 3001");

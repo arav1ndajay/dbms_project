@@ -12,8 +12,7 @@ function AdminProfile() {
   const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
   const [userDetailsLoading, setUserDetailsLoading] = useState(true);
-  //const [role, setRole] = useState("");
-
+  
   const [unverifiedUsers, setUnverifiedUsers] = useState([]);
   const { isOpen, toggle } = useSidebar();
   const [verifyError, setVerifyError] = useState("");
@@ -29,7 +28,6 @@ function AdminProfile() {
     Axios.get("http://localhost:3001/login").then((response) => {
       if (response.data.loggedIn) {
         setEmail(response.data.user[0].Email);
-        //setLoginStatus("true");
         setLoginStatus(response.data.user[0].Role);
       } else {
         setLoginStatus("false");

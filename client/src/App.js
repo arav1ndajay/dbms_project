@@ -12,6 +12,7 @@ import GardenerProfile from "./pages/garden/gardener/gardenerprofile";
 import MechanicProfile from "./pages/garden/mechanic/mechanicprofile";
 import GuestProfile from "./pages/guesthouse/guest/guestprofile";
 import BookRoom from "./pages/guesthouse/guest/bookroom";
+import GuesthouseAdmin from "./pages/admin/guesthouseadmin";
 
 function App() {
   Axios.defaults.withCredentials = true;
@@ -35,7 +36,16 @@ function App() {
           element={<MechanicProfile />}
         ></Route>
         <Route exact path="/guestprofile" element={<GuestProfile />}></Route>
-        <Route exact path="/bookroom" element={<BookRoom />}></Route>
+        <Route
+          exact
+          path="/guestprofile/bookroom"
+          element={<BookRoom />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/guesthouseadmin"
+          element={<GuesthouseAdmin />}
+        ></Route>
       </Routes>
     </BrowserRouter>
   );

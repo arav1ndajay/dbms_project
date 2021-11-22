@@ -15,17 +15,17 @@ import { MenuOutline } from "@styled-icons/evaicons-outline";
 const NavBar = ({ toggle }) => {
   return (
     <Nav>
-      <NavLogo to="/">Guest</NavLogo>
+      <NavLogo to="/guestprofile">Guest</NavLogo>
       <NavbarContainer>
         <NavIcon onClick={toggle}>
           <MenuOutline />
         </NavIcon>
         <NavMenu>
           <NavMenuItem>
-            <NavLinks to="/guesthouseadmin">Order food</NavLinks>
+            <NavLinks to="/guestprofile">Order food</NavLinks>
           </NavMenuItem>
           <NavMenuItem>
-            <NavLinks to="/bookroom">Book room</NavLinks>
+            <NavLinks to="/guestprofile/bookroom">Book room</NavLinks>
           </NavMenuItem>
         </NavMenu>
       </NavbarContainer>

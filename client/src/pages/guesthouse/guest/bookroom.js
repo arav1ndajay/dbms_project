@@ -36,7 +36,7 @@ function BookRoom() {
   }, []);
 
   useEffect(() => {
-    Axios.post("http://localhost:3001/getAvailableRooms").then((response) => {
+    Axios.get("http://localhost:3001/getAvailableRooms").then((response) => {
       if (response.data.message) {
         console.log(response.data.message);
       } else {
@@ -61,7 +61,8 @@ function BookRoom() {
     const cd = new Date(Date.now());
     const dateOfBooking =
       cd.getFullYear() + "-" + cd.getMonth() + "-" + cd.getDate();
-
+    console.log(dateOfBooking);
+    
     Axios.post("http://localhost:3001/bookRoom", {
       roomID: roomID,
       dateOfBooking: dateOfBooking,

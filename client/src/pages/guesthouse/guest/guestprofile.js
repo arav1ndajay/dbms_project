@@ -11,8 +11,10 @@ import { useSidebar } from "./guestsidebar/SidebarHook";
 function GuestProfile() {
   const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
-
+  const [bookedRooms, setBookedRooms] = useState([]);
   const { isOpen, toggle } = useSidebar();
+  const [roomDetailsLoading, setRoomDetailsLoading] = useState(true);
+  const [currentRooms, setCurrentRooms] = useState([])
 
   Axios.defaults.withCredentials = true;
 
@@ -28,12 +30,27 @@ function GuestProfile() {
   }, []);
 
   useEffect(() => {
-    Axios.get("http://localhost:3001/bookedRooms").then((response) => {
-      if (response.data.loggedIn) {
-        setEmail(response.data.user[0].Email);
-        setLoginStatus(response.data.user[0].Role);
+    //setRoomDetailsLoading(true)
+
+    console.log("Fetching my bookings");
+    Axios.get("http://localhost:3001/myPendingRooms").then((response) => {
+      if (response.data.message) {
+        console.log(response.data.message);
       } else {
-        setLoginStatus("false");
+        console.log(response.data);
+        setBookedRooms(response.data);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+
+    Axios.get("http://localhost:3001/myCurrentRooms").then((response) => {
+      if (response.data.message) {
+        console.log(response.data.message);
+      } else {
+        console.log(response.data);
+        setCurrentRooms(response.data);
       }
     });
   }, []);
@@ -59,7 +76,54 @@ function GuestProfile() {
       <div className="adminContainer">
         <div className="adminBox">
           <h1>Welcome, {email}</h1>
-          <h2>Current bookings:</h2>
+          <h2>Pending bookings:</h2>
+          {bookedRooms.length > 0 ? (
+            <table>
+              <tbody>
+                <tr>
+                  <td style={{ textAlign: "center" }}>RBID</td>
+                  <td style={{ textAlign: "center" }}>RoomID</td>
+                  <td style={{ textAlign: "center" }}>Date of Booking</td>
+                  <td style={{ textAlign: "center" }}>Price</td>
+                </tr>
+                {bookedRooms.map((room, index) => (
+                  <tr key={room.RBID}>
+                    <td>{room.RBID}</td>
+                    <td>{room.RoomID}</td>
+                    <td>{room.DateOfBooking.substring(0, 10)}</td>
+                    <td>{room.Price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div>No pending bookings!</div>
+          )}
+          <h2>Current room(s):</h2>
+          {currentRooms.length > 0 ? (
+            <table>
+              <tbody>
+                <tr>
+                  <td style={{ textAlign: "center" }}>RoomID</td>
+                  <td style={{ textAlign: "center" }}>Date of Booking</td>
+                  <td style={{ textAlign: "center" }}>Start Date</td>
+                  <td style={{ textAlign: "center" }}>End Date</td>
+                  <td style={{ textAlign: "center" }}>Price</td>
+                </tr>
+                {currentRooms.map((room, index) => (
+                  <tr key={room.RoomID}>
+                    <td>{room.RoomID}</td>
+                    <td>{room.DateOfBooking.substring(0, 10)}</td>
+                    <td>{room.StartDate.substring(0, 10)}</td>
+                    <td>{room.EndDate.substring(0, 10)}</td>
+                    <td>{room.Price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div>No rooms approved/booked!</div>
+          )}
           <div className="button-holder">
             <button onClick={(e) => logoutUser(e)}> Log out </button>
           </div>
