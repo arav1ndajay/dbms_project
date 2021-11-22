@@ -11,6 +11,8 @@ import {
   NavBtnLink,
 } from "./NavbarStyled";
 import { MenuOutline } from "@styled-icons/evaicons-outline";
+import "../../../App.css"
+import { Link } from "react-router-dom";
 
 const NavBar = ({ toggle }) => {
   return (
@@ -21,8 +23,17 @@ const NavBar = ({ toggle }) => {
           <MenuOutline />
         </NavIcon>
         <NavMenu>
-          <NavMenuItem>
+          {/* <NavMenuItem>
             <NavLinks to="/adminprofile/guesthouseadmin">Guesthouse</NavLinks>
+          </NavMenuItem> */}
+          <NavMenuItem>
+            <div className="dropdown">
+              <p>Guesthouse</p>
+              <div className="dropdown-content">
+                <Link to="/adminprofile/roomadmin">Room bookings</Link>
+                <Link to="/adminprofile/staffadmin">Staff</Link>
+              </div>
+            </div>
           </NavMenuItem>
           <NavMenuItem>
             <NavLinks to="/marketadmin">Market</NavLinks>

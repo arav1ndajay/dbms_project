@@ -121,7 +121,7 @@ button:hover {
   cursor: pointer;
   transform: scale(1.1);
   transition: all 0.1s ease-in-out;
-  background: rgb(164, 121, 182);
+  background: rgb(101, 55, 121);
 }
 
 form a {

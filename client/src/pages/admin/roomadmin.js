@@ -4,11 +4,11 @@ import "./adminprofile.css";
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import Axios from "axios";
-import NavBar from "../admin/adminnav/Navbar";
-import Sidebar from "../admin/adminsidebar/Sidebar";
-import { useSidebar } from "../admin/adminsidebar/SidebarHook";
+import NavBar from "./adminnav/Navbar";
+import Sidebar from "./adminsidebar/Sidebar";
+import { useSidebar } from "./adminsidebar/SidebarHook";
 
-function GuesthouseAdmin() {
+function RoomAdmin() {
   const [loginStatus, setLoginStatus] = useState("loading");
   const [roomDetailsLoading, setRoomDetailsLoading] = useState(true);
   const [pendingRooms, setPendingRooms] = useState([]);
@@ -142,9 +142,9 @@ function GuesthouseAdmin() {
           {roomsToApprove.length > 0 && (
             <button onClick={(e) => approveRooms(e)}> Approve rooms </button>
           )}
-          <div className="button-holder">
+          {/* <div className="button-holder">
             <button onClick={(e) => logoutUser(e)}> Log out </button>
-          </div>
+          </div> */}
           <p style={{ color: "#ed5c49" }}>{error}</p>
         </div>
       </div>
@@ -152,4 +152,4 @@ function GuesthouseAdmin() {
   );
 }
 
-export default GuesthouseAdmin;
+export default RoomAdmin;
