@@ -15,7 +15,7 @@ import { MenuOutline } from "@styled-icons/evaicons-outline";
 const NavBar = ({ toggle }) => {
   return (
     <Nav>
-      <NavLogo to="/">Mechanic</NavLogo>
+      <NavLogo to="/">Shopkeeper</NavLogo>
       <NavbarContainer>
         <NavIcon onClick={toggle}>
           <MenuOutline />

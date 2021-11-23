@@ -15,6 +15,12 @@ import BookRoom from "./pages/guesthouse/guest/bookroom";
 import GuesthouseAdmin from "./pages/admin/roomadmin";
 import RoomAdmin from "./pages/admin/roomadmin";
 import StaffAdmin from "./pages/admin/staffadmin";
+import GardenAdmin from "./pages/admin/gardenadmin";
+import MechanicAdmin from "./pages/admin/mechanicadmin";
+import ShopkeeperProfile from "./pages/market/shopkeeper/shopkeeperprofile";
+import AreaRequestAdmin from "./pages/admin/arearequestadmin";
+import FeedbacksAdmin from "./pages/admin/feedbacksadmin";
+import ShopServiceAdmin from "./pages/admin/shopserviceadmin";
 
 function App() {
   Axios.defaults.withCredentials = true;
@@ -34,8 +40,18 @@ function App() {
         ></Route>
         <Route
           exact
+          path="/gardenerprofile/currentduty"
+          element={<MechanicAdmin />}
+        ></Route>
+        <Route
+          exact
           path="/mechanicprofile"
           element={<MechanicProfile />}
+        ></Route>
+        <Route
+          exact
+          path="/shopkeeperprofile"
+          element={<ShopkeeperProfile />}
         ></Route>
         <Route exact path="/guestprofile" element={<GuestProfile />}></Route>
         <Route
@@ -52,6 +68,31 @@ function App() {
           exact
           path="/adminprofile/staffadmin"
           element={<StaffAdmin />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/gardenadmin"
+          element={<GardenAdmin />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/mechanicadmin"
+          element={<MechanicAdmin />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/arearequestadmin"
+          element={<AreaRequestAdmin />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/shopserviceadmin"
+          element={<ShopServiceAdmin />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/feedbacksadmin"
+          element={<FeedbacksAdmin />}
         ></Route>
       </Routes>
     </BrowserRouter>

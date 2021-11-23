@@ -21,6 +21,8 @@ function Landing() {
   else if (loginStatus === "mechanic")
     return <Navigate to="/mechanicprofile" />;
   else if (loginStatus === "guest") return <Navigate to="/guestprofile" />;
+  else if (loginStatus === "shopkeeper")
+    return <Navigate to="/shopkeeperprofile" />;
 
   return (
     <div className="container">

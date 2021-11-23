@@ -28,7 +28,7 @@ const NavBar = ({ toggle }) => {
           </NavMenuItem> */}
           <NavMenuItem>
             <div className="dropdown">
-              <p>Guesthouse</p>
+              <p style={{ margin: "10px" }}>Guesthouse</p>
               <div className="dropdown-content">
                 <Link to="/adminprofile/roomadmin">Room bookings</Link>
                 <Link to="/adminprofile/staffadmin">Staff</Link>
@@ -36,10 +36,25 @@ const NavBar = ({ toggle }) => {
             </div>
           </NavMenuItem>
           <NavMenuItem>
-            <NavLinks to="/marketadmin">Market</NavLinks>
+            <div className="dropdown">
+              <p style={{ margin: "10px" }}>Market shops</p>
+              <div className="dropdown-content">
+                <Link to="/adminprofile/shopserviceadmin">Shop Services</Link>
+                <Link to="/adminprofile/feedbacksadmin">Feedbacks</Link>
+              </div>
+            </div>
           </NavMenuItem>
           <NavMenuItem>
-            <NavLinks to="/gardenadmin">Landscaping</NavLinks>
+            <div className="dropdown">
+              <p>Gardening</p>
+              <div className="dropdown-content">
+                <Link to="/adminprofile/gardenadmin">Gardener</Link>
+                <Link to="/adminprofile/mechanicadmin">Mechanic</Link>
+                <Link to="/adminprofile/arearequestadmin">
+                  Area and Request
+                </Link>
+              </div>
+            </div>
           </NavMenuItem>
         </NavMenu>
       </NavbarContainer>

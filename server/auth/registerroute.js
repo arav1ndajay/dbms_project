@@ -9,7 +9,7 @@ module.exports = function (app, db) {
     const role = req.body.role;
 
     if (password != confirmPassword) {
-      res.send({ error: "Passwords do not match! Please try again." });
+      res.send({ message: "Passwords do not match! Please try again." });
     }
 
     bcrypt.hash(password, saltRounds, (err, hash) => {
@@ -129,9 +129,14 @@ module.exports = function (app, db) {
     const email = req.body.email;
     const stype = req.body.stype;
 
+    var reqNumDays;
+
+    if (stype === "regcook") reqNumDays = 5;
+    else if (stype === "chscook") reqNumDays = 6;
+
     db.query(
-      "INSERT INTO Staff (STName, ContactNum, DOB, Email, SType) VALUES (?,?,?,?,?)",
-      [stname, contactnum, dob, email, stype],
+      "INSERT INTO Staff (STName, ContactNum, DOB, Email, SType, ReqNumDays) VALUES (?,?,?,?,?,?)",
+      [stname, contactnum, dob, email, stype, reqNumDays],
       (err, result) => {
         if (err) {
           res.send({ message: err.sqlMessage });
