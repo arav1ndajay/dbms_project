@@ -1,0 +1,393 @@
+
+// Assignment: 	DBMS Project
+-------------------------------------START---------------------------------------------------------
+
+
+// Creating tables for entities
+
+CREATE TABLE GuestHouse 
+(GHID VARCHAR(20) PRIMARY KEY, GHName VARCHAR(30), Location VARCHAR(30), Capacity INT);
+
+CREATE TABLE Room (RoomID VARCHAR(20) PRIMARY KEY, Rent INT, Category CHAR(1));
+
+// Category: X - 1 BHK, Y - 2 BHK, Z - 3 BHK
+
+CREATE TABLE Guest (GID VARCHAR(20) PRIMARY KEY, GName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
+
+CREATE TABLE Staff (STID VARCHAR(20) PRIMARY KEY, STName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50), SType VARCHAR(20));
+
+CREATE TABLE Food (FID VARCHAR(20) PRIMARY KEY, FName VARCHAR(20), Price FLOAT(2));
+
+CREATE TABLE Admin (AID VARCHAR(20) PRIMARY KEY, AName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
+
+// Amrades stuff
+
+CREATE TABLE Customer (CID VARCHAR(20) PRIMARY KEY, CName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
+
+CREATE TABLE Shopkeeper (SKID VARCHAR(20) PRIMARY KEY, SKName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50), pendingFees BOOLEAN DEFAULT false);
+
+CREATE TABLE Shop(
+    SHID VARCHAR(20) NOT NULL PRIMARY KEY,
+    shopArea VARCHAR(20),
+    Rent INT,
+    TotalSales INT DEFAULT 0
+);
+
+CREATE TABLE ShopOwnership(
+    SKID VARCHAR(20),
+    SHID VARCHAR(20),
+    LicensePeriod INT,
+    ExtensionPeriod INT DEFAULT 0,
+    tenureDate DATE,
+    FOREIGN KEY (SKID) REFERENCES Shopkeeper(SKID),
+    FOREIGN KEY (SHID) REFERENCES Shop(SHID)
+);
+
+// Sinan stuff
+CREATE TABLE Gardener (GDID VARCHAR(20) PRIMARY KEY, GDName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
+
+CREATE TABLE Gattendance (GDID VARCHAR(20), Ready_Time INT, DateOfWork DATE, FOREIGN KEY (GDID) REFERENCES Gardener(GDID));
+
+CREATE TABLE Area (ARID VARCHAR(20) PRIMARY KEY, time INT, type VARCHAR(20));
+
+CREATE TABLE Request (ARID VARCHAR(20) PRIMARY KEY, DateOfRequest DATE, rem_time INT, FOREIGN KEY(ARID) REFERENCES Area(ARID));
+
+---------------------------------------------------------------------------------------------------
+// Table for users
+
+CREATE TABLE Users (UID INT AUTO_INCREMENT PRIMARY KEY, Email VARCHAR(50), Role VARCHAR(20), Password VARCHAR(255));
+
+To insert, use: INSERT INTO users (Email, Role, Password) VALUES ('a@gmail.com', 'tenant', 'hehe');
+
+---------------------------------------------------------------------------------------------------
+// Creating tables for relations
+
+CREATE TABLE roomOf 
+(RoomID VARCHAR(20), GHID VARCHAR(20), FOREIGN KEY (RoomID) REFERENCES Room(RoomID), 
+FOREIGN KEY (GHID) REFERENCES GuestHouse(GHID));
+
+CREATE TABLE Receipt ();
+
+CREATE TABLE RoomBookings (RBID VARCHAR(20) PRIMARY KEY, RoomID VARCHAR(20), 
+GID VARCHAR(20), DateOfBooking DATE, ApprovalStatus CHAR(1) DEFAULT "P", StartDate DATE, EndDate DATE, Price INT,
+FOREIGN KEY (RoomID) REFERENCES Room(RoomID), FOREIGN KEY (GID) REFERENCES Guest(GID));
+
+// Approval status: P for pending, A for approved
+
+CREATE TABLE FoodPrep ();
+
+CREATE TABLE DutyRoster ();
+
+CREATE TABLE transactions 
+(Series_reference VARCHAR(15), Period VARCHAR(7), Data_value FLOAT(2), 
+Suppressed VARCHAR(10), STATUS CHAR(1), UNITS VARCHAR(10), Magnitude INT, Subject VARCHAR(80), `Group` VARCHAR(80),
+Series_title_1 VARCHAR(80), Series_title_2 VARCHAR(80), Series_title_3 VARCHAR(80), Series_title_4 VARCHAR(80),
+Series_title_5 VARCHAR(80));
+---------------------------------------------------------------------------------------------------
+// 5 relevant queries for the tables
+
+// Guesthouse table
+
+INSERT INTO GuestHouse VALUES 
+('GH100', 'Mercury', 'Abc', 40),
+('GH200', 'Venus', 'Def', 60),
+('GH300', 'Mars', 'Ghi', 50),
+('GH400', 'Saturn', 'Jkl', 55),
+('GH500', 'Jupiter', 'Mno', 75);
+
+// roomOf
+INSERT INTO roomOf VALUES
+('R01', 'GH100'),
+('R02', 'GH100'),
+('R03', 'GH100'),
+('R04', 'GH100'),
+('R05', 'GH100'),
+('R06', 'GH100');
+
+// Room table
+INSERT INTO Room VALUES
+('R01', 1000, 'X'),
+('R02', 2000, 'Y'),
+('R03', 3000, 'Z'),
+('R04', 4000, 'X'),
+('R05', 5000, 'Y'),
+('R06', 6000, 'Z');
+
+// Person table
+INSERT INTO Person VALUES
+('G101', 'A', '9876543219', '1995-01-01'),
+('G102', 'B', '9876543218', '1996-02-02'),
+('G103', 'C', '9876543217', '1997-03-03'),
+('G104', 'D', '9876543216', '1998-04-04'),
+('G105', 'E', '9876543215', '1999-05-05');
+
+// RoomBookings table (this is where new bookings will come)
+INSERT INTO roombookings (RoomID, GID, DateOfBooking, StartDate, EndDate) VALUES 
+('R01', 'G101', '2021-01-01', '2021-02-02', '2021-03-01');
+
+// Feature to print receipt??
+---------------------------------------------------------------------------------------------------
+Triggers
+==========
+
+// Trigger for auto generating new guest ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_guest_insert
+BEFORE INSERT
+ON guest 
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(GID), 2, 3) AS UNSIGNED) INTO nextID FROM Guest;
+	
+	IF nextID IS NULL
+	THEN SET NEW.GID = CONCAT("G", 100);
+	ELSE SET NEW.GID = CONCAT("G", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new gardener ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_gardener_insert
+BEFORE INSERT
+ON gardener
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(GDID), 3, 3) AS UNSIGNED) INTO nextID FROM Gardener;
+	
+	IF nextID IS NULL
+	THEN SET NEW.GDID = CONCAT("GD", 100);
+	ELSE SET NEW.GDID = CONCAT("GD", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new mechanic ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_mechanic_insert
+BEFORE INSERT
+ON mechanic
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(MID), 2, 3) AS UNSIGNED) INTO nextID FROM Mechanic;
+	
+	IF nextID IS NULL
+	THEN SET NEW.MID = CONCAT("M", 100);
+	ELSE SET NEW.MID = CONCAT("M", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new staff ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_staff_insert
+BEFORE INSERT
+ON staff
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(STID), 3, 3) AS UNSIGNED) INTO nextID FROM Staff;
+	
+	IF nextID IS NULL
+	THEN SET NEW.STID = CONCAT("ST", 100);
+	ELSE SET NEW.STID = CONCAT("ST", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new customer ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_customer_insert
+BEFORE INSERT
+ON customer
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(CID), 2, 3) AS UNSIGNED) INTO nextID FROM Customer;
+	
+	IF nextID IS NULL
+	THEN SET NEW.CID = CONCAT("C", 100);
+	ELSE SET NEW.CID = CONCAT("C", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new shopkeeper ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_shopkeeper_insert
+BEFORE INSERT
+ON shopkeeper
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(SKID), 3, 3) AS UNSIGNED) INTO nextID FROM Shopkeeper;
+	
+	IF nextID IS NULL
+	THEN SET NEW.SKID = CONCAT("SK", 100);
+	ELSE SET NEW.SKID = CONCAT("SK", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new admin ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_admin_insert
+BEFORE INSERT
+ON admin
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(AID), 2, 3) AS UNSIGNED) INTO nextID FROM Admin;
+	
+	IF nextID IS NULL
+	THEN SET NEW.AID = CONCAT("A", 100);
+	ELSE SET NEW.AID = CONCAT("A", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new roombooking ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_roombookings_insert
+BEFORE INSERT
+ON roombookings
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	DECLARE rentOfRoom INT;
+	DECLARE days INT;
+	
+	SELECT CAST(SUBSTRING(MAX(RBID), 3, 3) AS UNSIGNED) INTO nextID FROM RoomBookings;
+	
+	IF nextID IS NULL
+	THEN SET NEW.RBID = CONCAT("RB", 100);
+	ELSE SET NEW.RBID = CONCAT("RB", nextID + 1);
+	END IF;
+
+	SELECT rent INTO rentOfRoom FROM Room WHERE RoomID = NEW.RoomID;
+	SELECT DATEDIFF(NEW.EndDate, NEW.StartDate) INTO days;
+	
+	SET NEW.Price = rentOfRoom * days;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new area ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_area_insert
+BEFORE INSERT
+ON area
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(ARID), 3, 3) AS UNSIGNED) INTO nextID FROM Area;
+	
+	IF nextID IS NULL
+	THEN SET NEW.ARID = CONCAT("AR", 100);
+	ELSE SET NEW.ARID = CONCAT("AR", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new shop ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_shop_insert
+BEFORE INSERT
+ON shop
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(SHID), 3, 3) AS UNSIGNED) INTO nextID FROM Shop;
+	
+	IF nextID IS NULL
+	THEN SET NEW.SHID = CONCAT("SH", 100);
+	ELSE SET NEW.SHID = CONCAT("SH", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+
+// Calculating rent of a room while inserting booking request
+
+DELIMITER $$
+
+CREATE TRIGGER before_RoomBookings_insert
+BEFORE INSERT
+ON RoomBookings 
+FOR EACH ROW
+BEGIN
+	DECLARE rentOfRoom INT;
+	DECLARE days INT;
+
+	SELECT rent INTO rentOfRoom FROM Room WHERE RoomID = NEW.RoomID;
+	SELECT DATEDIFF(NEW.EndDate, NEW.StartDate) INTO days;
+	
+	SET NEW.Price = rentOfRoom * days;
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+DECLARE dayToExclude INT;
+
+SELECT FLOOR(RAND()*(7) + 1) INTO dayToExclude;
+
+IF dayToExclude = 8 THEN SET dayToExclude = 7;
+END IF;
+
+select floor(rand()*(8-1) + 1);
+---------------------------------------------------------------------------------------------------
+Potential queries
+=================
+
+-----------------------------------------------END-------------------------------------------------

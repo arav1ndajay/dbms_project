@@ -8,7 +8,7 @@ import NavBar from "./adminnav/Navbar";
 import Sidebar from "./adminsidebar/Sidebar";
 import { useSidebar } from "./adminsidebar/SidebarHook";
 
-function StaffAdmin() {
+function GardenAdmin() {
   const [loginStatus, setLoginStatus] = useState("loading");
   const [roomDetailsLoading, setRoomDetailsLoading] = useState(true);
   const [pendingRooms, setPendingRooms] = useState([]);
@@ -89,10 +89,6 @@ function StaffAdmin() {
     });
   };
 
-  const generateStaffSchedule = (event) => {
-    event.preventDefault();
-  }
-
   if (loginStatus === "loading")
     return <h1 style={{ color: "red" }}>Loading profile...</h1>;
   else if (loginStatus !== "admin") return <Navigate to="/" />;
@@ -103,17 +99,9 @@ function StaffAdmin() {
       <NavBar toggle={toggle} />
       <div className="adminContainer">
         <div className="adminBox">
-          <h1>Staff Scheduler</h1>
-          <h2>This week's schedule</h2>
-          <div className="button-holder">
-            <button onClick={(e) => generateStaffSchedule(e)}>
-              {" "}
-              Generate new weekly schedule{" "}
-            </button>
-          </div>
-          <div className="button-holder">
-            <button onClick={(e) => logoutUser(e)}> Log out </button>
-          </div>
+          <h1>Create today's gardening schedule</h1>
+          <button>Generate schedule</button>
+          <button>Add to log</button>
           <p style={{ color: "#ed5c49" }}>{error}</p>
         </div>
       </div>
@@ -121,4 +109,4 @@ function StaffAdmin() {
   );
 }
 
-export default StaffAdmin;
+export default GardenAdmin;
