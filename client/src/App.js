@@ -1,104 +1,60 @@
 import "./App.css";
+import Login from "./pages/login/login";
+import { Routes, BrowserRouter, Route } from "react-router-dom";
+import Landing from "./pages/landing/landing";
+import AdminRegister from "./pages/register/adminRegister";
+import AdminProfile from "./pages/admin/adminprofile";
+import { useState, useEffect } from "react";
 import Axios from "axios";
-import { useState } from "react";
+import { Navigate } from "react-router-dom";
+import RegisterHome from "./pages/register/registerHome";
+import GardenerProfile from "./pages/garden/gardener/gardenerprofile";
+import MechanicProfile from "./pages/garden/mechanic/mechanicprofile";
+import GuestProfile from "./pages/guesthouse/guest/guestprofile";
+import BookRoom from "./pages/guesthouse/guest/bookroom";
+import GuesthouseAdmin from "./pages/admin/roomadmin";
+import RoomAdmin from "./pages/admin/roomadmin";
+import StaffAdmin from "./pages/admin/staffadmin";
 
 function App() {
-  const [empID, setEmpID] = useState("");
-  const [empName, setEmpName] = useState("");
-  const [email, setEmail] = useState("");
-  const [mobileNo, setMobileNo] = useState("");
-  const [dept, setDept] = useState("");
-  const [tyoe, setType] = useState("");
-
-
-  const submitForm = () => {
-    //Axios.post("http://localhost/3001/", );
-  };
+  Axios.defaults.withCredentials = true;
 
   return (
-    <div class="container">
-      <div class="box">
-        <div class="header">
-          <h2>Register</h2>
-        </div>
-
-        <form action="includes/registration.inc.php" method="post">
-          <div class="emp-details">
-            <div class="input-box">
-              <label for="empid" class="label">
-                Employee ID
-              </label>
-              <input type="text" name="empid"></input>
-            </div>
-
-            <div class="input-box">
-              <label for="email" class="label">
-                Email
-              </label>
-              <input type="text" name="email"></input>
-            </div>
-
-            <div class="input-box">
-              <label for="empName" class="label">
-                Name
-              </label>
-              <input type="text" name="empName"></input>
-            </div>
-
-            <div class="input-box">
-              <label for="doj" class="label">
-                Date of Joining
-              </label>
-              <input type="date" name="doj"></input>
-            </div>
-
-            <div class="input-box">
-              <label for="salary" class="label">
-                Salary
-              </label>
-              <input type="number" name="salary"></input>
-            </div>
-
-            <div class="input-box">
-              <label for="dept" class="label">
-                Department
-              </label>
-              <input type="text" name="dept"></input>
-            </div>
-
-            <div class="input-box">
-              <label for="mobno" class="label">
-                Mobile no.
-              </label>
-              <input type="number" name="mobno"></input>
-            </div>
-
-            <div class="input-box">
-              <label for="passwd" class="label">
-                Password
-              </label>
-              <input type="password" name="passwd_1"></input>
-            </div>
-
-            <div class="input-box">
-              <label for="passwd" class="label">
-                Confirm password
-              </label>
-              <input type="password" name="passwd_2"></input>
-            </div>
-          </div>
-          <div class="button-holder">
-            <p>
-              {" "}
-              Already a registered employee?{" "}
-              <a href="login.php">
-                <b>Log in</b>
-              </a>
-            </p>
-          </div>
-        </form>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route exact path="/" element={<Landing />} />
+        <Route exact path="/login" element={<Login />}></Route>
+        <Route exact path="/registerhome" element={<RegisterHome />}></Route>
+        <Route exact path="/adminregister" element={<AdminRegister />}></Route>
+        <Route exact path="/adminprofile" element={<AdminProfile />}></Route>
+        <Route
+          exact
+          path="/gardenerprofile"
+          element={<GardenerProfile />}
+        ></Route>
+        <Route
+          exact
+          path="/mechanicprofile"
+          element={<MechanicProfile />}
+        ></Route>
+        <Route exact path="/guestprofile" element={<GuestProfile />}></Route>
+        <Route
+          exact
+          path="/guestprofile/bookroom"
+          element={<BookRoom />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/roomadmin"
+          element={<RoomAdmin />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/staffadmin"
+          element={<StaffAdmin />}
+        ></Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

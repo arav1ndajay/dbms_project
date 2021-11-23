@@ -28,6 +28,37 @@
   color: #61dafb;
 }
 
+.dropdown {
+  display: inline-block;
+  position: relative;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  width: 100%;
+  overflow: auto;
+  background-color: #504d54;
+  border-radius: 5px;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown:hover p {
+  transform: scale(1.1);
+  transition: 0.2s ease;
+}
+.dropdown-content a {
+  display: block;
+  color: #ffffff;
+  padding: 5px;
+  text-decoration: none;
+}
+.dropdown-content a:hover {
+  color: #FFFFFF;
+  background-color: rgb(164, 121, 182);
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
