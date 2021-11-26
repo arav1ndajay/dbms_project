@@ -41,7 +41,7 @@ module.exports = function (app, db) {
     
 const cd = new Date(Date.now());
     const dateOfWork =
-      cd.getFullYear() + "-" + cd.getMonth() + "-" + cd.getDate();
+      cd.getFullYear() + "-" + (cd.getMonth() + 1) + "-" + cd.getDate();
     console.log(dateOfWork);
     if (req.session.user !== undefined) {
       if (req.session.user[0].Role == "gardener") {

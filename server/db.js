@@ -5,6 +5,7 @@ const db = mysql.createConnection({
   user: "root",
   password: "pass123",
   database: "project",
+  timezone: "utc",
 });
 
 module.exports = { db };

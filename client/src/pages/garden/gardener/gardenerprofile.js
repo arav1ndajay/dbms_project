@@ -57,7 +57,7 @@ function GardenerProfile() {
 
     const cd = new Date(Date.now());
     const dateOfWork =
-      cd.getFullYear() + "-" + cd.getMonth() + "-" + cd.getDate();
+      cd.getFullYear() + "-" + (cd.getMonth() + 1) + "-" + cd.getDate();
 
     Axios.post("http://localhost:3001/markAttendance", {
       readyTime: readyTime,

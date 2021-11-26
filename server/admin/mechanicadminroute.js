@@ -11,7 +11,7 @@ module.exports = function (app, db) {
           }
         });
       } else {
-        res.send({ message: "You are not a mechanic" });
+        res.send({ message: "You are not an admin" });
       }
     } else {
       res.send({ message: "No session found" });

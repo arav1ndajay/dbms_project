@@ -64,7 +64,7 @@ module.exports = function (app, db) {
 
     const cd = new Date(Date.now());
     const tenureDate =
-      cd.getFullYear() + "-" + cd.getMonth() + "-" + cd.getDate();
+      cd.getFullYear() + "-" + (cd.getMonth() + 1) + "-" + cd.getDate();
 
     if (req.session.user[0].Role == "admin") {
       db.query(

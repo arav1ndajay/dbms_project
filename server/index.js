@@ -40,6 +40,7 @@ require("./admin/guestadminroute")(app, db);
 require("./admin/mechanicadminroute")(app, db);
 require("./admin/arearequestroute")(app, db);
 require("./admin/shopadminroute")(app, db);
+require("./admin/staffadminroute")(app, db);
 require("./garden/gardenerroute")(app, db);
 
 

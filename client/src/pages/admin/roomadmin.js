@@ -142,9 +142,6 @@ function RoomAdmin() {
           {roomsToApprove.length > 0 && (
             <button onClick={(e) => approveRooms(e)}> Approve rooms </button>
           )}
-          {/* <div className="button-holder">
-            <button onClick={(e) => logoutUser(e)}> Log out </button>
-          </div> */}
           <p style={{ color: "#ed5c49" }}>{error}</p>
         </div>
       </div>

@@ -62,6 +62,12 @@ To insert, use: INSERT INTO users (Email, Role, Password) VALUES ('a@gmail.com',
 ---------------------------------------------------------------------------------------------------
 // Creating tables for relations
 
+CREATE TABLE StaffDutyRoster 
+(Date DATE, GHID VARCHAR(20), Shift_1 VARCHAR(20), Shift_2 VARCHAR(20), PRIMARY KEY(Date, GHID),
+FOREIGN KEY (GHID) REFERENCES Guesthouse(GHID));
+
+CREATE TABLE StaffDutyLog LIKE StaffDutyRoster;
+
 CREATE TABLE roomOf 
 (RoomID VARCHAR(20), GHID VARCHAR(20), FOREIGN KEY (RoomID) REFERENCES Room(RoomID), 
 FOREIGN KEY (GHID) REFERENCES GuestHouse(GHID));
@@ -75,8 +81,6 @@ FOREIGN KEY (RoomID) REFERENCES Room(RoomID), FOREIGN KEY (GID) REFERENCES Guest
 // Approval status: P for pending, A for approved
 
 CREATE TABLE FoodPrep ();
-
-CREATE TABLE DutyRoster ();
 
 CREATE TABLE transactions 
 (Series_reference VARCHAR(15), Period VARCHAR(7), Data_value FLOAT(2), 
@@ -378,14 +382,131 @@ END $$
 
 DELIMITER ;
 ---------------------------------------------------------------------------------------------------
-DECLARE dayToExclude INT;
+// Staff Duty roster function
 
-SELECT FLOOR(RAND()*(7) + 1) INTO dayToExclude;
+CALL generateStaffRoster ("GH100", curdate());
 
-IF dayToExclude = 8 THEN SET dayToExclude = 7;
-END IF;
+DELIMITER $$
 
-select floor(rand()*(8-1) + 1);
+CREATE PROCEDURE generateStaffRoster (IN GHID_t VARCHAR(20), IN curday DATE)
+BEGIN
+	DECLARE excludeDayForCHS INT;
+	DECLARE excludeDay1ForReg INT;
+	DECLARE excludeDay2ForReg INT;	
+	DECLARE tempDate DATE;	
+	DECLARE endDate DATE;
+	DECLARE chsID1 VARCHAR(20);
+	DECLARE chsID2 VARCHAR(20);
+	DECLARE regID1 VARCHAR(20);
+	DECLARE regID2 VARCHAR(20);
+	DECLARE clID1 VARCHAR(20);
+	DECLARE clID2 VARCHAR(20);
+	DECLARE helID1 VARCHAR(20);
+	DECLARE helID2 VARCHAR(20);
+	DECLARE c INT;
+	DECLARE tempShiftID VARCHAR(20);
+
+	SET c = 0;
+
+	WHILE DAYOFWEEK(curday) != 1 DO
+	  SET curday = DATE_ADD(curday, INTERVAL 1 DAY);
+	END WHILE;
+
+	SELECT FLOOR(RAND()*(7) + 1) INTO excludeDayForCHS;
+	SELECT FLOOR(RAND()*(7) + 1) INTO excludeDay1ForReg;
+	SELECT FLOOR(RAND()*(7) + 1) INTO excludeDay2ForReg;
+	
+	IF excludeDayForCHS = 8 THEN SET excludeDayForCHS = 7;
+	END IF;
+	IF excludeDay1ForReg = 8 THEN SET excludeDay1ForReg = 7;
+	END IF;
+	IF excludeDay2ForReg = 8 THEN SET excludeDay2ForReg = 7;
+	END IF;
+	
+	IF excludeDay1ForReg = excludeDay2ForReg AND excludeDay1ForReg = 7 THEN
+	  SET excludeDay2ForReg = 6;
+	ELSEIF excludeDay1ForReg = excludeDay2ForReg THEN
+	  SET excludeDay2ForReg = excludeDay1ForReg + 1;
+	END IF;
+
+	CREATE TEMPORARY TABLE chsStaff (chsSTID VARCHAR(20));
+	INSERT INTO chsStaff SELECT STID FROM Staff WHERE SType = "chscook";
+	
+	CREATE TEMPORARY TABLE regStaff (regSTID VARCHAR(20));
+	INSERT INTO regStaff SELECT STID FROM Staff WHERE SType = "regcook";
+	
+	SELECT chsSTID INTO chsID1 FROM chsStaff LIMIT 0,1;
+	SELECT chsSTID INTO chsID2 FROM chsStaff LIMIT 1,1;
+	SELECT regSTID INTO regID1 FROM regStaff LIMIT 0,1;
+	SELECT regSTID INTO regID2 FROM regStaff LIMIT 1,1;
+
+	SET tempDate = curday;
+	SET endDate = DATE_ADD(curday, INTERVAL 7 DAY);
+
+	WHILE tempDate < endDate DO
+	  IF DAYOFWEEK(tempDate) = excludeDayForCHS THEN
+	    INSERT INTO staffdutyroster VALUES (tempDate, GHID_t, chsID2, chsID2 );
+	  ELSE 
+	    INSERT INTO staffdutyroster VALUES (tempDate, GHID_t, chsID1, chsID1 );
+	  END IF;
+
+	SET tempDate = DATE_ADD(tempDate, INTERVAL 1 DAY);
+	END WHILE;
+
+	SET tempDate = curday;
+	SET endDate = DATE_ADD(curday, INTERVAL 7 DAY);
+
+	WHILE c < 5 AND tempDate < endDate DO
+	  SELECT Shift_1 INTO tempShiftID FROM staffdutyroster WHERE Date = tempDate; 
+	  IF tempShiftID = chsID2 THEN
+	    SET c = c-1;
+	  ELSE
+	    UPDATE staffdutyroster SET Shift_1 = CONCAT(Shift_1, chsID2) WHERE Date = tempDate;
+	    UPDATE staffdutyroster SET Shift_2 = CONCAT(Shift_2, chsID2) WHERE Date = tempDate;
+	  END IF;
+	SET c = c + 1;
+	SET tempDate = DATE_ADD(tempDate, INTERVAL 1 DAY);
+	END WHILE;
+
+	SET tempDate = curday;
+	SET endDate = DATE_ADD(curday, INTERVAL 7 DAY);
+
+	WHILE tempDate < endDate DO
+	  IF DAYOFWEEK(tempDate) = excludeDay1ForReg OR DAYOFWEEK(tempDate) = excludeDay2ForReg THEN
+	    UPDATE staffdutyroster SET Shift_1 = CONCAT(Shift_1, regID2) WHERE Date = tempDate;
+	    UPDATE staffdutyroster SET Shift_2 = CONCAT(Shift_2, regID2) WHERE Date = tempDate;
+	  ELSE 
+	    UPDATE staffdutyroster SET Shift_1 = CONCAT(Shift_1, regID1) WHERE Date = tempDate;
+	    UPDATE staffdutyroster SET Shift_2 = CONCAT(Shift_2, regID1) WHERE Date = tempDate;
+	  END IF;
+
+	SET tempDate = DATE_ADD(tempDate, INTERVAL 1 DAY);
+	END WHILE;
+
+	SET tempDate = curday;
+	SET endDate = DATE_ADD(curday, INTERVAL 7 DAY);
+	SET c = 0;
+
+	WHILE c < 3 AND tempDate < endDate DO
+	  SELECT Shift_1 INTO tempShiftID FROM staffdutyroster WHERE Date = tempDate; 
+	  IF SUBSTRING(tempShiftID, LENGTH(tempShiftID)-4, 5) = regID2 THEN
+	    SET c = c-1;
+	  ELSE
+	    UPDATE staffdutyroster SET Shift_1 = CONCAT(Shift_1, regID2) WHERE Date = tempDate;
+	    UPDATE staffdutyroster SET Shift_2 = CONCAT(Shift_2, regID2) WHERE Date = tempDate;
+	  END IF;
+	SET c = c + 1;
+	SET tempDate = DATE_ADD(tempDate, INTERVAL 1 DAY);
+	END WHILE;
+	
+	DROP TABLE chsStaff;
+	DROP TABLE regStaff;
+	
+END $$
+
+DELIMITER ;
+
+
 ---------------------------------------------------------------------------------------------------
 Potential queries
 =================
