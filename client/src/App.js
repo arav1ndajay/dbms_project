@@ -21,6 +21,11 @@ import ShopkeeperProfile from "./pages/market/shopkeeper/shopkeeperprofile";
 import AreaRequestAdmin from "./pages/admin/arearequestadmin";
 import FeedbacksAdmin from "./pages/admin/feedbacksadmin";
 import ShopServiceAdmin from "./pages/admin/shopserviceadmin";
+import PaymentsAdmin from "./pages/admin/paymentsadmin";
+import Reminders from "./pages/market/shopkeeper/reminders";
+import AddShopReceipt from "./pages/market/shopkeeper/addshopreceipt";
+import CustomerProfile from "./pages/market/customer/customerprofile";
+import CustomerFeedback from "./pages/market/customer/customerfeedback";
 
 function App() {
   Axios.defaults.withCredentials = true;
@@ -50,8 +55,28 @@ function App() {
         ></Route>
         <Route
           exact
+          path="/customerprofile"
+          element={<CustomerProfile />}
+        ></Route>
+        <Route
+          exact
+          path="/customerprofile/customerfeedback"
+          element={<CustomerFeedback />}
+        ></Route>
+        <Route
+          exact
           path="/shopkeeperprofile"
           element={<ShopkeeperProfile />}
+        ></Route>
+        <Route
+          exact
+          path="/shopkeeperprofile/reminders"
+          element={<Reminders />}
+        ></Route>
+        <Route
+          exact
+          path="/shopkeeperprofile/addshopreceipt"
+          element={<AddShopReceipt />}
         ></Route>
         <Route exact path="/guestprofile" element={<GuestProfile />}></Route>
         <Route
@@ -93,6 +118,11 @@ function App() {
           exact
           path="/adminprofile/feedbacksadmin"
           element={<FeedbacksAdmin />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/paymentsadmin"
+          element={<PaymentsAdmin />}
         ></Route>
       </Routes>
     </BrowserRouter>

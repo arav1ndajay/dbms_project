@@ -60,7 +60,7 @@ function BookRoom() {
 
     const cd = new Date(Date.now());
     const dateOfBooking =
-      cd.getFullYear() + "-" + cd.getMonth() + "-" + cd.getDate();
+      cd.getFullYear() + "-" + (cd.getMonth() + 1) + "-" + cd.getDate();
     console.log(dateOfBooking);
     
     Axios.post("http://localhost:3001/bookRoom", {

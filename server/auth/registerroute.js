@@ -129,7 +129,7 @@ module.exports = function (app, db) {
     const email = req.body.email;
     const stype = req.body.stype;
 
-    var reqNumDays;
+    var reqNumDays = 0;
 
     if (stype === "regcook") reqNumDays = 5;
     else if (stype === "chscook") reqNumDays = 6;

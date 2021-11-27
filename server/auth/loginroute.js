@@ -12,6 +12,7 @@ module.exports = function (app, db) {
     const email = req.body.email;
     const password = req.body.password;
     const role = req.body.role;
+
     if (email == "" || password == "") {
       res.send({ message: "One or more fields are empty!" });
     } else {
