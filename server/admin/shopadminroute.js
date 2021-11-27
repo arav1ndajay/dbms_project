@@ -21,6 +21,29 @@ module.exports = function (app, db) {
     }
   });
 
+  app.post("/addShopPayment", (req, res) => {
+    const SKID = req.body.SKID;
+    const deposit = req.body.deposit;
+    const depositDate = req.body.depositDate;
+
+    if (req.session.user[0].Role == "admin") {
+      db.query(
+        "INSERT INTO shoprentpayment (SKID, deposit, depositDate) VALUES (?,?,?)",
+        [SKID, deposit, depositDate],
+        (err, result) => {
+          if (err) {
+            res.send({ message: err.sqlMessage });
+          } else {
+            console.log(result);
+            res.send({ message: "Payment added!" });
+          }
+        }
+      );
+    } else {
+      res.send({ message: "Administrator privileges required." });
+    }
+  });
+
   app.get("/getUnassignedShopkeepers", (req, res) => {
     if (req.session.user[0].Role == "admin") {
       db.query(
@@ -39,6 +62,39 @@ module.exports = function (app, db) {
     }
   });
 
+  app.get("/getShopkeepers", (req, res) => {
+    if (req.session.user[0].Role == "admin") {
+      db.query("SELECT SKID FROM shopownership", (err, result) => {
+        if (err) {
+          res.send({ message: err.sqlMessage });
+        } else {
+          console.log(result);
+          res.send(result);
+        }
+      });
+    } else {
+      res.send({ message: "Administrator privileges required." });
+    }
+  });
+
+  app.get("/getShopIDs", (req, res) => {
+    if (
+      req.session.user[0].Role == "admin" ||
+      req.session.user[0].Role == "customer"
+    ) {
+      db.query("SELECT SHID FROM shopownership", (err, result) => {
+        if (err) {
+          res.send({ message: err.sqlMessage });
+        } else {
+          console.log(result);
+          res.send(result);
+        }
+      });
+    } else {
+      res.send({ message: "Administrator privileges required." });
+    }
+  });
+
   app.get("/getUnassignedShops", (req, res) => {
     if (req.session.user[0].Role == "admin") {
       db.query(
@@ -49,6 +105,44 @@ module.exports = function (app, db) {
           } else {
             console.log(result);
             res.send(result);
+          }
+        }
+      );
+    } else {
+      res.send({ message: "Administrator privileges required." });
+    }
+  });
+
+  app.get("/getExtensionRequests", (req, res) => {
+    if (req.session.user[0].Role == "admin") {
+      db.query(
+        "SELECT SKID FROM shopownership WHERE ExtensionRequested = true",
+        (err, result) => {
+          if (err) {
+            res.send({ message: err.sqlMessage });
+          } else {
+            res.send(result);
+          }
+        }
+      );
+    } else {
+      res.send({ message: "Administrator privileges required." });
+    }
+  });
+
+  app.post("/extendLicense", (req, res) => {
+    const SKID = req.body.SKID;
+    const extensionPeriod = req.body.extensionPeriod;
+
+    if (req.session.user[0].Role == "admin") {
+      db.query(
+        "UPDATE shopownership SET ExtensionPeriod = ?, ExtensionRequested = false WHERE SKID = ?;",
+        [extensionPeriod, SKID],
+        (err, result) => {
+          if (err) {
+            res.send({ message: err.sqlMessage });
+          } else {
+            res.send({ message: "License extended successfully." });
           }
         }
       );

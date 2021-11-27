@@ -41,6 +41,7 @@ const NavBar = ({ toggle }) => {
               <div className="dropdown-content">
                 <Link to="/adminprofile/shopserviceadmin">Shop Services</Link>
                 <Link to="/adminprofile/feedbacksadmin">Feedbacks</Link>
+                <Link to="/adminprofile/paymentsadmin">Payments</Link>
               </div>
             </div>
           </NavMenuItem>
@@ -58,9 +59,6 @@ const NavBar = ({ toggle }) => {
           </NavMenuItem>
         </NavMenu>
       </NavbarContainer>
-      <NavBtn>
-        <NavBtnLink to="/Login">Profile</NavBtnLink>
-      </NavBtn>
     </Nav>
   );
 };

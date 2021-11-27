@@ -24,7 +24,7 @@ CREATE TABLE Admin (AID VARCHAR(20) PRIMARY KEY, AName VARCHAR(30), ContactNum V
 
 CREATE TABLE Customer (CID VARCHAR(20) PRIMARY KEY, CName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
 
-CREATE TABLE Shopkeeper (SKID VARCHAR(20) PRIMARY KEY, SKName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50), pendingFees BOOLEAN DEFAULT false);
+CREATE TABLE Shopkeeper (SKID VARCHAR(20) PRIMARY KEY, SKName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
 
 CREATE TABLE Shop(
     SHID VARCHAR(20) NOT NULL PRIMARY KEY,
@@ -39,9 +39,31 @@ CREATE TABLE ShopOwnership(
     LicensePeriod INT,
     ExtensionPeriod INT DEFAULT 0,
     tenureDate DATE,
+    ExtensionRequested BOOLEAN DEFAULT false,
     FOREIGN KEY (SKID) REFERENCES Shopkeeper(SKID),
     FOREIGN KEY (SHID) REFERENCES Shop(SHID)
 );
+
+CREATE TABLE ItemsInShop(
+    ItemID VARCHAR(20) PRIMARY KEY,
+    SHID VARCHAR(20),
+    ItemName VARCHAR(50),
+    Price INT,
+    ExpiryDate DATE,
+    FOREIGN KEY (SHID) REFERENCES shopownership(SHID)
+);
+
+CREATE TABLE ShopReceipt
+(SRID VARCHAR(20) PRIMARY KEY, CID VARCHAR(20), SHID VARCHAR(20), ItemID VARCHAR(20), PurchaseDate DATE, Quantity INT, Cost INT, 
+FOREIGN KEY (CID) REFERENCES Customer(CID), FOREIGN KEY (SHID) REFERENCES Shopownership(SHID), FOREIGN KEY (ItemID) REFERENCES itemsinshop(ItemID));
+
+CREATE TABLE FeedbackQuestions
+(Q1 VARCHAR(255), Q2 VARCHAR(255), Q3 VARCHAR(255));
+
+CREATE TABLE Feedback 
+(FDID VARCHAR(20) PRIMARY KEY, CID VARCHAR(20), SHID VARCHAR(20), 
+R1 INT, R2 INT, R3 INT, Comments VARCHAR(255),
+FOREIGN KEY (CID) REFERENCES Customer(CID), FOREIGN KEY (SHID) REFERENCES Shopownership(SHID));
 
 // Sinan stuff
 CREATE TABLE Gardener (GDID VARCHAR(20) PRIMARY KEY, GDName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
@@ -82,11 +104,13 @@ FOREIGN KEY (RoomID) REFERENCES Room(RoomID), FOREIGN KEY (GID) REFERENCES Guest
 
 CREATE TABLE FoodPrep ();
 
-CREATE TABLE transactions 
-(Series_reference VARCHAR(15), Period VARCHAR(7), Data_value FLOAT(2), 
-Suppressed VARCHAR(10), STATUS CHAR(1), UNITS VARCHAR(10), Magnitude INT, Subject VARCHAR(80), `Group` VARCHAR(80),
-Series_title_1 VARCHAR(80), Series_title_2 VARCHAR(80), Series_title_3 VARCHAR(80), Series_title_4 VARCHAR(80),
-Series_title_5 VARCHAR(80));
+CREATE TABLE ShopRentPayment(
+    PayID VARCHAR(20),
+    SKID VARCHAR(20),
+    deposit INT,
+    depositDate DATE,
+    FOREIGN KEY (SKID) references Shopkeeper(SKID)
+);
 ---------------------------------------------------------------------------------------------------
 // 5 relevant queries for the tables
 
@@ -361,6 +385,94 @@ END $$
 
 DELIMITER ;
 ---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new payment ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_shoprentpayment_insert
+BEFORE INSERT
+ON shoprentpayment
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(PayID), 4, 3) AS UNSIGNED) INTO nextID FROM ShopRentPayment;
+	
+	IF nextID IS NULL
+	THEN SET NEW.PayID = CONCAT("Pay", 100);
+	ELSE SET NEW.PayID = CONCAT("Pay", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new feedback ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_feedback_insert
+BEFORE INSERT
+ON feedback
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(FDID), 3, 3) AS UNSIGNED) INTO nextID FROM Feedback;
+	
+	IF nextID IS NULL
+	THEN SET NEW.FDID = CONCAT("FD", 100);
+	ELSE SET NEW.FDID = CONCAT("FD", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new item ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_itemsinshop_insert
+BEFORE INSERT
+ON itemsinshop
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(ItemID), 3, 3) AS UNSIGNED) INTO nextID FROM itemsinshop;
+	
+	IF nextID IS NULL
+	THEN SET NEW.ItemID = CONCAT("IT", 100);
+	ELSE SET NEW.ItemID = CONCAT("IT", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new shop receipt ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_shopreceipt_insert
+BEFORE INSERT
+ON shopreceipt
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(SRID), 3, 3) AS UNSIGNED) INTO nextID FROM shopreceipt;
+	
+	IF nextID IS NULL
+	THEN SET NEW.SRID = CONCAT("SR", 100);
+	ELSE SET NEW.SRID = CONCAT("SR", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
 
 // Calculating rent of a room while inserting booking request
 
@@ -381,8 +493,9 @@ BEGIN
 END $$
 
 DELIMITER ;
+
 ---------------------------------------------------------------------------------------------------
-// Staff Duty roster function
+// Staff Duty roster procedure
 
 CALL generateStaffRoster ("GH100", curdate());
 
@@ -505,8 +618,156 @@ BEGIN
 END $$
 
 DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Procedure for logging data into staffdutylog and deleting it from staffdutyroster
 
+DELIMITER $$
 
+CREATE PROCEDURE logSchedule ()
+BEGIN
+	INSERT INTO StaffDutyLog SELECT * FROM staffdutyroster;
+	DELETE FROM staffdutyroster;
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Procedure for extending license
+
+DELIMITER $$
+
+CREATE PROCEDURE extendLicense (IN SKID_t VARCHAR(20), IN extPeriod INT)
+BEGIN
+	UPDATE shopownership SET ExtensionPeriod = extPeriod, ExtensionRequested = false WHERE SKID = SKID_t;
+	UPDATE shopkeeper SET LPReminder = false WHERE SKID = SKID_t;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Procedure for adding receipt and calculating cost
+
+DELIMITER $$
+
+CREATE PROCEDURE addReceipt (IN itemID_t VARCHAR(20), IN shopID_t VARCHAR(20), IN CID_t VARCHAR(20), IN quantity_t INT, IN purchaseDate_t DATE)
+BEGIN
+	DECLARE costOfItem INT;
+
+	SELECT Price INTO costOfItem FROM itemsinshop WHERE ItemID = itemID_t AND SHID = shopID_t;
+	
+	SET costOfItem = costOfItem * quantity_t;
+
+	INSERT INTO shopreceipt (CID, SHID, ItemID, PurchaseDate, Quantity, Cost ) VALUES (CID_t, shopID_t, itemID_t, purchaseDate_t, quantity_t, costOfItem);
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// function to check if extension request has been placed
+
+DELIMITER $$
+
+CREATE FUNCTION hasPlacedExtensionRequest (email_t VARCHAR(20))
+RETURNS BOOLEAN
+DETERMINISTIC
+BEGIN
+	DECLARE extReq BOOLEAN;
+
+	DECLARE SKID_t VARCHAR(20);
+
+	SELECT SKID INTO SKID_t FROM shopkeeper WHERE Email = email_t;
+
+	SELECT ExtensionRequested INTO extReq FROM shopownership WHERE SKID = SKID_t;
+
+	RETURN extReq;
+END$$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// function to get rating of a shop
+
+DELIMITER $$
+
+CREATE FUNCTION getRating (SHID_t VARCHAR(20))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+	DECLARE rating INT;
+	DECLARE i INT;
+	DECLARE n INT;
+	DECLARE tempSHID VARCHAR(20);
+	DECLARE tempFDID VARCHAR(20);
+	DECLARE matchCount INT;
+	DECLARE sumOfRatings INT;
+	DECLARE tempSum INT;
+	
+
+	SET i = 0;
+	SET n = 0;
+	SET matchCount = 0;
+	SET sumOfRatings = 0;
+	SET tempSum = 0;
+	
+	SET rating = -1;
+
+	SELECT COUNT(*) INTO n FROM feedback;
+
+	WHILE i<n DO
+	   SELECT SHID INTO tempSHID FROM feedback ORDER BY FDID LIMIT i,1;
+	   SELECT FDID INTO tempFDID FROM feedback ORDER BY FDID LIMIT i,1;
+	   
+           IF tempSHID = SHID_t THEN
+	      	SET matchCount = matchCount + 1;
+    		SELECT R1+R2+R3 INTO tempSum FROM Feedback WHERE FDID = tempFDID;
+		SET sumOfRatings = sumOfRatings + tempSum;
+	   END IF;
+	   SET i = i+1;
+	END WHILE;
+	
+	IF matchCount != 0 THEN
+	SET rating = sumOfRatings / (matchCount * 3);
+	END IF;
+
+	RETURN rating;
+END$$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// function to get total sales
+
+DELIMITER $$
+
+CREATE FUNCTION getTotalSales (SHID_t VARCHAR(20))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+	DECLARE i INT;
+	DECLARE n INT;
+
+	DECLARE tempSHID VARCHAR(20);
+	DECLARE tempCost INT;
+	DECLARE totalSales INT;
+
+	SET i = 0;
+	SET n = 0;
+	SET tempCost = 0;
+	SET totalSales = 0;
+
+	SELECT COUNT(*) INTO n FROM shopreceipt;
+
+	WHILE i<n DO
+	   SELECT SHID INTO tempSHID FROM shopreceipt ORDER BY SRID LIMIT i,1;
+	   SELECT Cost INTO tempCost FROM shopreceipt ORDER BY SRID LIMIT i,1;
+	   
+           IF tempSHID = SHID_t THEN
+		SET totalSales = totalSales + tempCost;
+	   END IF;
+	   SET i = i+1;
+	END WHILE;
+
+	RETURN totalSales;
+END$$
+
+DELIMITER ;
 ---------------------------------------------------------------------------------------------------
 Potential queries
 =================

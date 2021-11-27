@@ -1,4 +1,49 @@
 module.exports = function (app, db) {
+  app.get("/getLoggedDates", (req, res) => {
+    if (req.session.user !== undefined) {
+      if (req.session.user[0].Role == "admin") {
+        db.query("SELECT Date FROM staffdutylog", (err, result) => {
+          if (err) {
+            res.send({ message: "Error occurred. Please try again" });
+          } else {
+            console.log(result);
+            res.send(result);
+          }
+        });
+      } else {
+        res.send({ message: "You are not an admin" });
+      }
+    } else {
+      res.send({ message: "No session found" });
+    }
+  });
+
+  app.post("/getLoggedData", (req, res) => {
+    const startDate = req.body.startDate;
+    const endDate = req.body.endDate;
+
+    if (req.session.user !== undefined) {
+      if (req.session.user[0].Role == "admin") {
+        db.query(
+          "SELECT * FROM staffdutylog WHERE Date >= ? AND Date <= ?",
+          [startDate, endDate],
+          (err, result) => {
+            if (err) {
+              res.send({ message: "Error occurred. Please try again" });
+            } else {
+              console.log(result);
+              res.send(result);
+            }
+          }
+        );
+      } else {
+        res.send({ message: "You are not an admin" });
+      }
+    } else {
+      res.send({ message: "No session found" });
+    }
+  });
+
   app.get("/getStaffDetails", (req, res) => {
     if (req.session.user !== undefined) {
       if (req.session.user[0].Role == "admin") {
@@ -129,7 +174,7 @@ module.exports = function (app, db) {
               res.send({ message: "Error occurred. Please try again" });
             } else {
               console.log(result);
-              res.send({message: "Schedule logged successfully!"});
+              res.send({ message: "Schedule logged successfully!" });
             }
           }
         );

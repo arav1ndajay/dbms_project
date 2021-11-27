@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 
 function Login() {
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState("customer");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -51,6 +51,8 @@ function Login() {
   else if (loginStatus === "guest") return <Navigate to="/guestprofile" />;
   else if (loginStatus === "shopkeeper")
     return <Navigate to="/shopkeeperprofile" />;
+  else if (loginStatus === "customer")
+    return <Navigate to="/customerprofile" />;
 
   return (
     <div className="container">

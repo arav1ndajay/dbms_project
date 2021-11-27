@@ -23,6 +23,8 @@ function Landing() {
   else if (loginStatus === "guest") return <Navigate to="/guestprofile" />;
   else if (loginStatus === "shopkeeper")
     return <Navigate to="/shopkeeperprofile" />;
+  else if (loginStatus === "customer")
+    return <Navigate to="/customerprofile" />;
 
   return (
     <div className="container">
