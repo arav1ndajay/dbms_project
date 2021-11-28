@@ -18,12 +18,10 @@ function StaffAdmin() {
   const [shift, setShift] = useState("Shift_1");
   const [staffString, setStaffString] = useState("");
   const [dateToUpdate, setDateToUpdate] = useState("");
-  const [dataLogged, setDataLogged] = useState(true);
-  const [loggedDates, setLoggedDates] = useState([]);
+  const [dataLogged, setDataLogged] = useState(false);
   const loggedWeeks = useRef([]);
   const [loggedData, setLoggedData] = useState([]);
   const [weekToViewLog, setWeekToViewLog] = useState("");
-
   const [error, setError] = useState("");
   const [updateError, setUpdateError] = useState("");
 
@@ -60,10 +58,14 @@ function StaffAdmin() {
         const currentDate =
           cd.getFullYear() + "-" + (cd.getMonth() + 1) + "-" + cd.getDate();
 
-        if ( loggedWeeks.current.length > 0 &&
-          currentDate > loggedWeeks.current[loggedWeeks.current.length-1].endDate
+        if (
+          loggedWeeks.current.length > 0 &&
+          !(
+            currentDate >
+            loggedWeeks.current[loggedWeeks.current.length - 1].endDate
+          )
         )
-          setDataLogged(false);
+          setDataLogged(true);
         console.log(currentDate);
       }
     });
@@ -80,6 +82,25 @@ function StaffAdmin() {
       setScheduleLoading(false);
     });
   }, []);
+
+  // useEffect(() => {
+  //   setScheduleLoading(true);
+
+  //   const cd = new Date(Date.now());
+  //   const currentDate =
+  //     cd.getFullYear() + "-" + (cd.getMonth() + 1) + "-" + cd.getDate();
+
+  //   Axios.post("http://localhost:3001/getLoggedData", {
+  //     startDate: currentDate,
+  //     endDate: currentDate,
+  //   }).then((response) => {
+  //     if (response.data.message) setError(response.data.message);
+  //     else {
+  //       console.log(response.data);
+  //       setDataIsLogged(true);
+  //     }
+  //   });
+  // }, []);
 
   useEffect(() => {
     Axios.get("http://localhost:3001/getStaffDetails").then((response) => {
@@ -170,8 +191,22 @@ function StaffAdmin() {
     event.preventDefault();
 
     Axios.get("http://localhost:3001/fixSchedule").then((response) => {
-      if (response.data.message) setError(response.data.message);
+      if (response.data.error) setError(response.data.message);
+      else {
+        setError(response.data.message);
 
+        setScheduleLoading(true);
+        Axios.get("http://localhost:3001/getWeeklySchedule").then(
+          (response) => {
+            if (response.data.message) setError(response.data.message);
+
+            setWeeklySchedule(response.data);
+            setDataLogged(true);
+
+            setScheduleLoading(false);
+          }
+        );
+      }
       console.log(response.data);
     });
   };
@@ -328,6 +363,10 @@ function StaffAdmin() {
                   </form>
                 )}
               </div>
+            ) : dataLogged ? (
+              <p>
+                Data is logged for this week. Please check logs for schedule.
+              </p>
             ) : (
               <div>
                 <div>No schedule for this week</div>

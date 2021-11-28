@@ -27,6 +27,8 @@ import AddShopReceipt from "./pages/market/shopkeeper/addshopreceipt";
 import CustomerProfile from "./pages/market/customer/customerprofile";
 import CustomerFeedback from "./pages/market/customer/customerfeedback";
 import GardenerTools from "./pages/garden/gardener/gardenertools";
+import FoodAdmin from "./pages/admin/foodadmin";
+import OrderFood from "./pages/guesthouse/guest/orderfood";
 
 function App() {
   Axios.defaults.withCredentials = true;
@@ -47,7 +49,7 @@ function App() {
         <Route
           exact
           path="/gardenerprofile/gardenertools"
-          element={<GardenerTools/>}
+          element={<GardenerTools />}
         ></Route>
         <Route
           exact
@@ -87,6 +89,11 @@ function App() {
         ></Route>
         <Route
           exact
+          path="/guestprofile/orderfood"
+          element={<OrderFood />}
+        ></Route>
+        <Route
+          exact
           path="/adminprofile/roomadmin"
           element={<RoomAdmin />}
         ></Route>
@@ -94,6 +101,11 @@ function App() {
           exact
           path="/adminprofile/staffadmin"
           element={<StaffAdmin />}
+        ></Route>
+        <Route
+          exact
+          path="/adminprofile/foodadmin"
+          element={<FoodAdmin />}
         ></Route>
         <Route
           exact

@@ -43,6 +43,7 @@ require("./admin/shopadminroute")(app, db);
 require("./admin/staffadminroute")(app, db);
 require("./admin/feedbacksadminroute")(app, db);
 require("./admin/gardenadminroute")(app, db);
+require("./admin/foodadminroute")(app, db);
 require("./garden/gardenerroute")(app, db);
 require("./market/shopkeeperroute")(app, db);
 require("./market/customerroute")(app, db);
