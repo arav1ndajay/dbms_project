@@ -74,6 +74,26 @@ CREATE TABLE Area (ARID VARCHAR(20) PRIMARY KEY, time INT, type VARCHAR(20));
 
 CREATE TABLE Request (ARID VARCHAR(20) PRIMARY KEY, DateOfRequest DATE, rem_time INT, FOREIGN KEY(ARID) REFERENCES Area(ARID));
 
+CREATE TABLE Duty (DateOfDuty DATE, GDID VARCHAR(20), ARID VARCHAR(20), dutyTime INT,Status CHAR(1),
+FOREIGN KEY(ARID) REFERENCES Area(ARID), FOREIGN KEY(GDID) REFERENCES Gardener(GDID));
+
+CREATE TABLE Duty_history LIKE Duty;
+
+CREATE TABLE Work8 (GDID varchar(20), Ready_Time int, FOREIGN KEY(GDID) REFERENCES Gardener(GDID));
+
+create table Completed_request(DateofComplete date, ARID varchar(20), FOREIGN KEY(ARID) REFERENCES Area(ARID));
+
+CREATE TABLE Tool(TID VARCHAR(20) PRIMARY KEY, TName VARCHAR(20), Status CHAR(1) DEFAULT "A");
+// Available: A, Used for work: W, Under repair: R
+
+CREATE TABLE ToolRepairing (TID VARCHAR(20), MID VARCHAR(20), DateStarted DATE,
+FOREIGN KEY(TID) REFERENCES Tool(TID), FOREIGN KEY(MID) REFERENCES Mechanic(MID));
+
+CREATE TABLE ToolRepairHistory (TRID VARCHAR(20) PRIMARY KEY, TID VARCHAR(20), MID VARCHAR(20), DateFinished DATE, Amount INT, PaymentStatus BOOLEAN DEFAULT false,
+FOREIGN KEY(TID) REFERENCES Tool(TID), FOREIGN KEY(MID) REFERENCES Mechanic(MID));
+
+CREATE TABLE ToolUsing (TID VARCHAR(20), GDID VARCHAR(20), DateUse DATE, FOREIGN KEY(TID) REFERENCES Tool(TID), 
+FOREIGN KEY(GDID) REFERENCES Gardener(GDID));
 ---------------------------------------------------------------------------------------------------
 // Table for users
 
@@ -102,7 +122,6 @@ FOREIGN KEY (RoomID) REFERENCES Room(RoomID), FOREIGN KEY (GID) REFERENCES Guest
 
 // Approval status: P for pending, A for approved
 
-CREATE TABLE FoodPrep ();
 
 CREATE TABLE ShopRentPayment(
     PayID VARCHAR(20),
@@ -312,6 +331,28 @@ END $$
 
 DELIMITER ;
 ---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new Food ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_food_insert
+BEFORE INSERT
+ON food
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(FID), 2, 3) AS UNSIGNED) INTO nextID FROM Food;
+	
+	IF nextID IS NULL
+	THEN SET NEW.FID = CONCAT("F", 100);
+	ELSE SET NEW.FID = CONCAT("F", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
 // Trigger for auto generating new roombooking ID
 
 DELIMITER $$
@@ -467,6 +508,50 @@ BEGIN
 	IF nextID IS NULL
 	THEN SET NEW.SRID = CONCAT("SR", 100);
 	ELSE SET NEW.SRID = CONCAT("SR", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new tool ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_tool_insert
+BEFORE INSERT
+ON tool
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(TID), 2, 3) AS UNSIGNED) INTO nextID FROM tool;
+	
+	IF nextID IS NULL
+	THEN SET NEW.TID = CONCAT("T", 100);
+	ELSE SET NEW.TID = CONCAT("T", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new tool repair history ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_toolrepairhistory_insert
+BEFORE INSERT
+ON toolrepairhistory
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(TRID), 3, 3) AS UNSIGNED) INTO nextID FROM toolrepairhistory;
+	
+	IF nextID IS NULL
+	THEN SET NEW.TRID = CONCAT("TR", 100);
+	ELSE SET NEW.TRID = CONCAT("TR", nextID + 1);
 	END IF;
 
 END $$
@@ -768,6 +853,80 @@ BEGIN
 END$$
 
 DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Procedure for dumping gardener duties
+
+DELIMITER $$
+
+CREATE PROCEDURE saveGardenerDutyHistory()
+BEGIN
+	INSERT INTO duty_history SELECT * FROM Duty;
+	DELETE FROM Duty;
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Procedure for assigning tool to mechanic
+
+DELIMITER $$
+
+CREATE PROCEDURE assignToolToMechanic(IN TID_t VARCHAR(20), IN MID_t VARCHAR(20), IN Date_t DATE)
+BEGIN
+	INSERT INTO ToolRepairing VALUES (TID_t, MID_t, Date_t);
+	UPDATE tool SET Status = "R" WHERE TID = TID_t;
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Procedure for gardener to use tool
+
+DELIMITER $$
+
+CREATE PROCEDURE setGardenerTool(IN TID_t VARCHAR(20), IN email_t VARCHAR(20))
+BEGIN
+	DECLARE GDID_t VARCHAR(20);
+
+	SELECT GDID INTO GDID_t FROM Gardener WHERE email = email_t;
+	INSERT INTO ToolUsing VALUES (TID_t, GDID_t, curdate());
+	UPDATE tool SET Status = "W" WHERE TID = TID_t;
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Procedure for gardener to return tool
+
+DELIMITER $$
+
+CREATE PROCEDURE returnTool(IN TID_t VARCHAR(20))
+BEGIN
+	DELETE FROM ToolUsing WHERE TID = TID_t;
+	UPDATE tool SET Status = "A" WHERE TID = TID_t;
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Procedure for mechanic to mark tool as repaired
+
+DELIMITER $$
+
+CREATE PROCEDURE markToolAsRepaired(IN TID_t VARCHAR(20), IN MID_t VARCHAR(20), IN Date_t DATE, IN amount_t INT)
+BEGIN
+	INSERT INTO ToolRepairHistory (TID, MID, DateFinished, Amount) VALUES (TID_t, MID_t, Date_t, amount_t);
+	UPDATE tool SET Status = "A" WHERE TID = TID_t;
+	DELETE FROM ToolRepairing WHERE TID = TID_t AND MID = MID_t;
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// Procedure for getting monthly salary of workers
+
+delimiter $$
+create procedure get_salary(in y int,in m int,in price int)
+begin
+ select GDID,sum(dutyTime)*price as salary from Duty_history where year(DateofDuty)=y and month(DateofDuty)=m and Status='P' group by GDID ;
+end;
+$$
+delimiter ;
 ---------------------------------------------------------------------------------------------------
 Potential queries
 =================

@@ -26,6 +26,7 @@ import Reminders from "./pages/market/shopkeeper/reminders";
 import AddShopReceipt from "./pages/market/shopkeeper/addshopreceipt";
 import CustomerProfile from "./pages/market/customer/customerprofile";
 import CustomerFeedback from "./pages/market/customer/customerfeedback";
+import GardenerTools from "./pages/garden/gardener/gardenertools";
 
 function App() {
   Axios.defaults.withCredentials = true;
@@ -45,8 +46,8 @@ function App() {
         ></Route>
         <Route
           exact
-          path="/gardenerprofile/currentduty"
-          element={<MechanicAdmin />}
+          path="/gardenerprofile/gardenertools"
+          element={<GardenerTools/>}
         ></Route>
         <Route
           exact

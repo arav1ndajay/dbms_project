@@ -22,13 +22,10 @@ const NavBar = ({ toggle }) => {
         </NavIcon>
         <NavMenu>
           <NavMenuItem>
-            <NavLinks to="/gardenerprofile/currentduty">Current Duty</NavLinks>
+            <NavLinks to="/gardenerprofile/gardenertools">Tools</NavLinks>
           </NavMenuItem>
         </NavMenu>
       </NavbarContainer>
-      <NavBtn>
-        <NavBtnLink to="/Login">Profile</NavBtnLink>
-      </NavBtn>
     </Nav>
   );
 };

@@ -42,9 +42,11 @@ require("./admin/arearequestroute")(app, db);
 require("./admin/shopadminroute")(app, db);
 require("./admin/staffadminroute")(app, db);
 require("./admin/feedbacksadminroute")(app, db);
+require("./admin/gardenadminroute")(app, db);
 require("./garden/gardenerroute")(app, db);
 require("./market/shopkeeperroute")(app, db);
 require("./market/customerroute")(app, db);
+require("./garden/mechanicroute")(app, db);
 
 app.listen(3001, () => {
   console.log("Running on port 3001");
