@@ -106,7 +106,7 @@ function AdminProfile() {
           {userDetailsLoading ? (
             <div>Loading...</div>
           ) : unverifiedUsers.length > 0 ? (
-            <table>
+            <table style={{ border: "1px solid white" }}>
               <tbody>
                 <tr>
                   <td style={{ textAlign: "center" }}>UID</td>

@@ -143,6 +143,7 @@ function RegisterHome() {
     return <Navigate to="/shopkeeperprofile" />;
   else if (loginStatus === "customer")
     return <Navigate to="/customerprofile" />;
+  else if (loginStatus === "staff") return <Navigate to="/staffprofile" />;
 
   return (
     <div className="container">

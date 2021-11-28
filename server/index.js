@@ -36,6 +36,7 @@ require("./auth/loginroute")(app, db);
 require("./auth/registerroute")(app, db);
 require("./admin/userverifroute")(app, db);
 require("./guesthouse/guestroute")(app, db);
+require("./guesthouse/staffroute")(app, db);
 require("./admin/guestadminroute")(app, db);
 require("./admin/mechanicadminroute")(app, db);
 require("./admin/arearequestroute")(app, db);

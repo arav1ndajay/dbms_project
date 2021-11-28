@@ -11,14 +11,19 @@ import { useSidebar } from "./adminsidebar/SidebarHook";
 function FoodAdmin() {
   const [loginStatus, setLoginStatus] = useState("loading");
   const [error, setError] = useState("");
-  const [detailsToShow, setDetailsToShow] = useState("foods");
+  const [detailsToShow, setDetailsToShow] = useState("pendingorders");
   const { isOpen, toggle } = useSidebar();
   const [availableFoods, setAvailableFoods] = useState([]);
   const [FName, setFName] = useState("");
   const [price, setPrice] = useState(0);
   const [FID, setFID] = useState("");
-  const [orders, setOrders] = useState([]);
+  const [monthlyOrders, setMonthlyOrders] = useState([]);
+  const [unpaidOrders, setUnpaidOrders] = useState([]);
+
   const [FBID, setFBID] = useState("");
+
+  const [month, setMonth] = useState(0);
+  const [year, setYear] = useState(0);
   Axios.defaults.withCredentials = true;
 
   useEffect(() => {
@@ -40,12 +45,11 @@ function FoodAdmin() {
       }
     });
 
-    Axios.get("http://localhost:3001/getAllOrders").then((response) => {
+    Axios.get("http://localhost:3001/getAllUnpaidOrders").then((response) => {
       if (response.data.error) {
         setError(response.data.error);
       } else {
-        setOrders(response.data);
-        console.log(response.data);
+        setUnpaidOrders(response.data);
       }
     });
   }, []);
@@ -102,13 +106,31 @@ function FoodAdmin() {
         setError(response.data.error);
       } else {
         setError(response.data.message);
-        Axios.get("http://localhost:3001/getAllOrders").then((response) => {
-          if (response.data.message) {
-            setError(response.data.message);
-          } else {
-            setOrders(response.data);
+        Axios.get("http://localhost:3001/getAllUnpaidOrders").then(
+          (response) => {
+            if (response.data.error) {
+              setError(response.data.error);
+            } else {
+              setUnpaidOrders(response.data);
+            }
           }
-        });
+        );
+      }
+    });
+  };
+
+  const getMonthlyBill = (event) => {
+    event.preventDefault();
+
+    Axios.post("http://localhost:3001/getOrdersInAMonth", {
+      year: year,
+      month: month,
+    }).then((response) => {
+      if (response.data.error) {
+        setError(response.data.error);
+      } else {
+        setMonthlyOrders(response.data);
+        console.log(response.data);
       }
     });
   };
@@ -130,9 +152,9 @@ function FoodAdmin() {
               required
               onChange={(e) => setDetailsToShow(e.target.value)}
             >
+              <option value="pendingorders"> Pending orders </option>
               <option value="foods"> Foods </option>
-              <option value="orders"> Food orders </option>
-              <option value="foodorderhistory"> History of orders </option>
+              <option value="monthlybill"> Monthly bill </option>
             </select>
             <h1>Foods available</h1>
             {availableFoods.length > 0 ? (
@@ -205,7 +227,7 @@ function FoodAdmin() {
             )}
             <p style={{ color: "#ed5c49" }}>{error}</p>
           </div>
-        ) : detailsToShow === "orders" ? (
+        ) : detailsToShow === "pendingorders" ? (
           <div className="box">
             <select
               style={{ fontSize: "20px", marginTop: "10px" }}
@@ -213,12 +235,12 @@ function FoodAdmin() {
               required
               onChange={(e) => setDetailsToShow(e.target.value)}
             >
+              <option value="pendingorders"> Pending orders </option>
               <option value="foods"> Foods </option>
-              <option value="orders"> Food orders </option>
-              <option value="foodorderhistory"> History of orders </option>
+              <option value="monthlybill"> Monthly bill </option>
             </select>
             <h1>Payment pending orders</h1>
-            {orders.filter((o) => o.PaymentStatus === 0).length > 0 ? (
+            {unpaidOrders.length > 0 ? (
               <table style={{ border: "1px solid white" }}>
                 <tbody>
                   <tr>
@@ -229,7 +251,7 @@ function FoodAdmin() {
                     <td>Quantity</td>
                     <td>Order Price</td>
                   </tr>
-                  {orders
+                  {unpaidOrders
                     .filter((o) => o.PaymentStatus === 0)
                     .map((f, index) => (
                       <tr key={f.FBID}>
@@ -246,7 +268,7 @@ function FoodAdmin() {
             ) : (
               <p>No pending orders.</p>
             )}
-            {orders.filter((o) => o.PaymentStatus === 0).length > 0 && (
+            {unpaidOrders.length > 0 && (
               <form method="POST">
                 <div className="inputdetails">
                   <div className="input-box">
@@ -258,7 +280,7 @@ function FoodAdmin() {
                       onChange={(e) => setFBID(e.target.value)}
                     >
                       <option value="">Select</option>
-                      {orders
+                      {unpaidOrders
                         .filter((o) => o.PaymentStatus === 0)
                         .map((f, index) => (
                           <option value={f.FBID} key={f.FBID}>
@@ -283,12 +305,35 @@ function FoodAdmin() {
               required
               onChange={(e) => setDetailsToShow(e.target.value)}
             >
+              <option value="pendingorders"> Pending orders </option>
               <option value="foods"> Foods </option>
-              <option value="orders"> Food orders </option>
-              <option value="foodorderhistory"> History of orders </option>
+              <option value="monthlybill"> Monthly bill </option>
             </select>
-            <h1>History of food orders</h1>
-            {orders.filter((o) => o.PaymentStatus === 1).length > 0 ? (
+            <h1>Monthly bill</h1>
+            <form method="POST">
+              <div className="inputdetails">
+                <div className="input-box">
+                  <label className="label">Year</label>
+                  <input
+                    type="number"
+                    onChange={(e) => setYear(e.target.value)}
+                  />
+                </div>
+                <div className="input-box">
+                  <label className="label">Month</label>
+                  <input
+                    type="number"
+                    onChange={(e) => setMonth(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div style={{ marginTop: 0 }} className="button-holder">
+                <button onClick={(e) => getMonthlyBill(e)}>
+                  Get monthly bill
+                </button>
+              </div>
+            </form>
+            {monthlyOrders.length > 0 && (
               <table style={{ border: "1px solid white" }}>
                 <tbody>
                   <tr>
@@ -300,23 +345,19 @@ function FoodAdmin() {
                     <td>Order Price</td>
                     <td>Date of order</td>
                   </tr>
-                  {orders
-                    .filter((o) => o.PaymentStatus === 1)
-                    .map((f, index) => (
-                      <tr key={f.FBID}>
-                        <td>{f.FBID}</td>
-                        <td>{f.GID}</td>
-                        <td>{f.FID}</td>
-                        <td>{f.FName}</td>
-                        <td>{f.Quantity}</td>
-                        <td>{f.OrderPrice}</td>
-                        <td>{f.DateOfOrder.substring(0,10)}</td>
-                      </tr>
-                    ))}
+                  {monthlyOrders.map((f, index) => (
+                    <tr key={f.FBID}>
+                      <td>{f.FBID}</td>
+                      <td>{f.GID}</td>
+                      <td>{f.FID}</td>
+                      <td>{f.FName}</td>
+                      <td>{f.Quantity}</td>
+                      <td>{f.OrderPrice}</td>
+                      <td>{f.DateOfOrder.substring(0, 10)}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
-            ) : (
-              <p>No history of orders</p>
             )}
             <p style={{ color: "#ed5c49" }}>{error}</p>
           </div>
