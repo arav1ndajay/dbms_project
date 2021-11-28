@@ -16,9 +16,12 @@ CREATE TABLE Guest (GID VARCHAR(20) PRIMARY KEY, GName VARCHAR(30), ContactNum V
 
 CREATE TABLE Staff (STID VARCHAR(20) PRIMARY KEY, STName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50), SType VARCHAR(20));
 
-CREATE TABLE Food (FID VARCHAR(20) PRIMARY KEY, FName VARCHAR(20), Price FLOAT(2));
+CREATE TABLE Food (FID VARCHAR(20) PRIMARY KEY, FName VARCHAR(50), Price FLOAT(2));
 
 CREATE TABLE Admin (AID VARCHAR(20) PRIMARY KEY, AName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
+
+CREATE TABLE FoodBookings (FBID VARCHAR(20) PRIMARY KEY, GID VARCHAR(20), FID VARCHAR(20), FName VARCHAR(50), Quantity INT, OrderPrice INT, DateOfOrder DATE, PaymentStatus BOOLEAN DEFAULT false,
+FOREIGN KEY(GID) REFERENCES Guest(GID), FOREIGN KEY(FID) REFERENCES Food(FID));
 
 // Amrades stuff
 
@@ -558,6 +561,28 @@ END $$
 
 DELIMITER ;
 ---------------------------------------------------------------------------------------------------
+// Trigger for auto generating new tool repair history ID
+
+DELIMITER $$
+
+CREATE TRIGGER before_foodbookings_insert
+BEFORE INSERT
+ON foodbookings
+FOR EACH ROW
+BEGIN
+	DECLARE nextID INT;
+	
+	SELECT CAST(SUBSTRING(MAX(FBID), 3, 3) AS UNSIGNED) INTO nextID FROM foodbookings;
+	
+	IF nextID IS NULL
+	THEN SET NEW.FBID = CONCAT("FB", 100);
+	ELSE SET NEW.FBID = CONCAT("FB", nextID + 1);
+	END IF;
+
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
 
 // Calculating rent of a room while inserting booking request
 
@@ -597,12 +622,12 @@ BEGIN
 	DECLARE chsID2 VARCHAR(20);
 	DECLARE regID1 VARCHAR(20);
 	DECLARE regID2 VARCHAR(20);
-	DECLARE clID1 VARCHAR(20);
-	DECLARE clID2 VARCHAR(20);
+	DECLARE clrID1 VARCHAR(20);
+	DECLARE clrID2 VARCHAR(20);
 	DECLARE helID1 VARCHAR(20);
 	DECLARE helID2 VARCHAR(20);
 	DECLARE c INT;
-	DECLARE tempShiftID VARCHAR(20);
+	DECLARE tempShiftID VARCHAR(100);
 
 	SET c = 0;
 
@@ -632,11 +657,21 @@ BEGIN
 	
 	CREATE TEMPORARY TABLE regStaff (regSTID VARCHAR(20));
 	INSERT INTO regStaff SELECT STID FROM Staff WHERE SType = "regcook";
+
+	CREATE TEMPORARY TABLE clrStaff (clrSTID VARCHAR(20));
+	INSERT INTO clrStaff SELECT STID FROM Staff WHERE SType = "cleaner";
+
+	CREATE TEMPORARY TABLE helStaff (helSTID VARCHAR(20));
+	INSERT INTO helStaff SELECT STID FROM Staff WHERE SType = "cookhelper";
 	
 	SELECT chsSTID INTO chsID1 FROM chsStaff LIMIT 0,1;
 	SELECT chsSTID INTO chsID2 FROM chsStaff LIMIT 1,1;
 	SELECT regSTID INTO regID1 FROM regStaff LIMIT 0,1;
 	SELECT regSTID INTO regID2 FROM regStaff LIMIT 1,1;
+	SELECT clrSTID INTO clrID1 FROM clrStaff LIMIT 0,1;
+	SELECT clrSTID INTO clrID2 FROM clrStaff LIMIT 1,1;
+	SELECT helSTID INTO helID1 FROM helStaff LIMIT 0,1;
+	SELECT helSTID INTO helID2 FROM helStaff LIMIT 1,1;
 
 	SET tempDate = curday;
 	SET endDate = DATE_ADD(curday, INTERVAL 7 DAY);
@@ -696,9 +731,65 @@ BEGIN
 	SET c = c + 1;
 	SET tempDate = DATE_ADD(tempDate, INTERVAL 1 DAY);
 	END WHILE;
+
+	SET tempDate = curday;
+	SET endDate = DATE_ADD(curday, INTERVAL 7 DAY);
+
+	WHILE tempDate < endDate DO
+	  IF FLOOR(RAND()*(2) + 1) = 1 THEN
+	    UPDATE staffdutyroster SET Shift_1 = CONCAT(Shift_1, clrID1) WHERE Date = tempDate;
+	  ELSE 
+	    UPDATE staffdutyroster SET Shift_2 = CONCAT(Shift_2, clrID1) WHERE Date = tempDate;
+	  END IF;
+
+	SET tempDate = DATE_ADD(tempDate, INTERVAL 1 DAY);
+	END WHILE;
+
+	SET tempDate = curday;
+	SET endDate = DATE_ADD(curday, INTERVAL 7 DAY);
+
+	WHILE tempDate < endDate DO
+	  SELECT Shift_1 INTO tempShiftID FROM staffdutyroster WHERE Date = tempDate; 
+	  IF LOCATE(clrID1, tempShiftID) = 0 THEN
+	    UPDATE staffdutyroster SET Shift_1 = CONCAT(Shift_1, clrID2) WHERE Date = tempDate;
+	  ELSE 
+	    UPDATE staffdutyroster SET Shift_2 = CONCAT(Shift_2, clrID2) WHERE Date = tempDate;
+	  END IF;
+
+	SET tempDate = DATE_ADD(tempDate, INTERVAL 1 DAY);
+	END WHILE;
+
+	SET tempDate = curday;
+	SET endDate = DATE_ADD(curday, INTERVAL 7 DAY);
+
+	WHILE tempDate < endDate DO
+	  IF FLOOR(RAND()*(2) + 1) = 1 THEN
+	    UPDATE staffdutyroster SET Shift_1 = CONCAT(Shift_1, helID1) WHERE Date = tempDate;
+	  ELSE 
+	    UPDATE staffdutyroster SET Shift_2 = CONCAT(Shift_2, helID1) WHERE Date = tempDate;
+	  END IF;
+
+	SET tempDate = DATE_ADD(tempDate, INTERVAL 1 DAY);
+	END WHILE;
+
+	SET tempDate = curday;
+	SET endDate = DATE_ADD(curday, INTERVAL 7 DAY);
+
+	WHILE tempDate < endDate DO
+	  SELECT Shift_1 INTO tempShiftID FROM staffdutyroster WHERE Date = tempDate; 
+	  IF LOCATE(helID1, tempShiftID) = 0 THEN
+	    UPDATE staffdutyroster SET Shift_1 = CONCAT(Shift_1, helID2) WHERE Date = tempDate;
+	  ELSE 
+	    UPDATE staffdutyroster SET Shift_2 = CONCAT(Shift_2, helID2) WHERE Date = tempDate;
+	  END IF;
+
+	SET tempDate = DATE_ADD(tempDate, INTERVAL 1 DAY);
+	END WHILE;
 	
 	DROP TABLE chsStaff;
 	DROP TABLE regStaff;
+	DROP TABLE clrStaff;
+	DROP TABLE helStaff;
 	
 END $$
 
@@ -751,7 +842,7 @@ DELIMITER ;
 
 DELIMITER $$
 
-CREATE FUNCTION hasPlacedExtensionRequest (email_t VARCHAR(20))
+CREATE FUNCTION hasPlacedExtensionRequest (email_t VARCHAR(50))
 RETURNS BOOLEAN
 DETERMINISTIC
 BEGIN
@@ -854,6 +945,28 @@ END$$
 
 DELIMITER ;
 ---------------------------------------------------------------------------------------------------
+// Procedure for ordering food
+
+DELIMITER $$
+
+CREATE PROCEDURE orderFood(IN FID_t VARCHAR(20), IN quantity_t INT, IN email_t VARCHAR(50))
+BEGIN
+	DECLARE orderPrice_t INT;
+	DECLARE GID_t VARCHAR(20);
+	DECLARE FName_t VARCHAR(50);
+	
+	SELECT Price INTO orderPrice_t FROM Food WHERE FID = FID_t;
+	SELECT FName INTO FName_t FROM Food WHERE FID = FID_t;
+	
+	SET orderPrice_t = orderPrice_t * quantity_t;
+
+	SELECT GID INTO GID_t FROM Guest WHERE Email = email_t;
+
+	INSERT INTO FoodBookings (GID, FID, FName, Quantity, OrderPrice, DateOfOrder) VALUES (GID_t, FID_t, FName_t, quantity_t, orderPrice_t, curdate());
+END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
 // Procedure for dumping gardener duties
 
 DELIMITER $$
@@ -927,6 +1040,20 @@ begin
 end;
 $$
 delimiter ;
+---------------------------------------------------------------------------------------------------
+// Procedure for logging staff schedule in staffdutylog
+
+DELIMITER $$
+
+CREATE PROCEDURE logStaffSchedule()
+BEGIN
+	INSERT INTO StaffDutyLog SELECT * FROM staffdutyroster;
+
+	DELETE FROM staffdutyroster;
+
+END $$
+
+DELIMITER ;
 ---------------------------------------------------------------------------------------------------
 Potential queries
 =================

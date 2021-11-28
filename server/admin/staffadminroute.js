@@ -89,7 +89,7 @@ module.exports = function (app, db) {
           "CALL generateStaffRoster ('GH100', curdate());",
           (err, result) => {
             if (err) {
-              res.send({ message: "Error occurred. Please try again" });
+              res.send({ message: err.sqlMessage });
             } else {
               db.query("SELECT * FROM staffdutyroster;", (err, result2) => {
                 if (err) {
@@ -167,22 +167,21 @@ module.exports = function (app, db) {
   app.get("/fixSchedule", (req, res) => {
     if (req.session.user !== undefined) {
       if (req.session.user[0].Role == "admin") {
-        db.query(
-          "INSERT INTO StaffDutyLog SELECT * FROM staffdutyroster",
-          (err, result) => {
-            if (err) {
-              res.send({ message: "Error occurred. Please try again" });
-            } else {
-              console.log(result);
-              res.send({ message: "Schedule logged successfully!" });
-            }
+        db.query("CALL logStaffSchedule()", (err, result) => {
+          if (err) {
+            res.send({ error: "Error occurred. Please try again" });
+          } else {
+            console.log(result);
+            res.send({
+              message: "Schedule logged successfully! Please check logs.",
+            });
           }
-        );
+        });
       } else {
-        res.send({ message: "You are not an admin" });
+        res.send({ error: "You are not an admin" });
       }
     } else {
-      res.send({ message: "No session found" });
+      res.send({ error: "No session found" });
     }
   });
 };

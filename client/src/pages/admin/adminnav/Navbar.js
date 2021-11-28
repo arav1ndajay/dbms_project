@@ -32,6 +32,7 @@ const NavBar = ({ toggle }) => {
               <div className="dropdown-content">
                 <Link to="/adminprofile/roomadmin">Room bookings</Link>
                 <Link to="/adminprofile/staffadmin">Staff</Link>
+                <Link to="/adminprofile/foodadmin">Food related</Link>
               </div>
             </div>
           </NavMenuItem>

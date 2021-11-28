@@ -131,4 +131,56 @@ module.exports = function (app, db) {
       res.send({ message: "No session found." });
     }
   });
+
+  app.post("/orderFood", (req, res) => {
+    const FID = req.body.FID;
+    const quantity = req.body.quantity;
+
+    if (req.session.user !== undefined) {
+      if (req.session.user[0].Role == "guest") {
+        db.query(
+          "CALL orderFood(?,?,?)",
+          [FID, quantity, req.session.user[0].Email],
+          (err, result) => {
+            if (err) {
+              res.send({ error: err.sqlMessage });
+            } else {
+              console.log(result);
+              res.send({ message: "Order placed." });
+            }
+          }
+        );
+      } else {
+        res.send({ error: "You are not a guest." });
+      }
+    } else {
+      res.send({ error: "No session found" });
+    }
+  });
+
+  app.get("/getOrders", (req, res) => {
+    if (req.session.user !== undefined) {
+      if (
+        req.session.user[0].Role == "guest" ||
+        req.session.user[0].Role == "admin"
+      ) {
+        db.query(
+          "SELECT * FROM FoodBookings WHERE GID = (SELECT GID FROM Guest WHERE Email = ?)",
+          [req.session.user[0].Email],
+          (err, result) => {
+            if (err) {
+              res.send({ error: err.sqlMessage });
+            } else {
+              console.log(result);
+              res.send(result);
+            }
+          }
+        );
+      } else {
+        res.send({ error: "You are not a guest." });
+      }
+    } else {
+      res.send({ error: "No session found" });
+    }
+  });
 };
