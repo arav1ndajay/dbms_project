@@ -50,7 +50,7 @@ const NavBar = ({ toggle }) => {
               <p>Gardening</p>
               <div className="dropdown-content">
                 <Link to="/adminprofile/gardenadmin">Gardener</Link>
-                <Link to="/adminprofile/mechanicadmin">Mechanic</Link>
+                <Link to="/adminprofile/mechanicadmin">Tools / Mechanic</Link>
                 <Link to="/adminprofile/arearequestadmin">
                   Area and Request
                 </Link>

@@ -13,9 +13,9 @@ function GardenerProfile() {
   const [loginStatus, setLoginStatus] = useState("loading");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [currentReadyTime, setCurrentReadyTime] = useState(0)
-  const [readyTime, setReadyTime] = useState(0);
-
+  const [weeklyDuty, setWeeklyDuty] = useState([]);
+  const [todaysDuty, setTodaysDuty] = useState([]);
+  const [isChecked, setIsChecked] = useState(false)
   const { isOpen, toggle } = useSidebar();
 
   Axios.defaults.withCredentials = true;
@@ -24,20 +24,35 @@ function GardenerProfile() {
     Axios.get("http://localhost:3001/login").then((response) => {
       if (response.data.loggedIn) {
         setEmail(response.data.user[0].Email);
+
+        Axios.post("http://localhost:3001/getThisWeeksDuty", {
+          email: response.data.user[0].Email,
+        }).then((response) => {
+          if (response.data.error) {
+            setError(response.data.error);
+          } else {
+            setMessage(response.data.message);
+            console.log(response.data);
+            setWeeklyDuty(response.data);
+
+            const cd = new Date(Date.now());
+            const currentDate =
+              cd.getFullYear() + "-" + (cd.getMonth() + 1) + "-" + cd.getDate();
+
+            for (let i = 0; i < response.data.length; i++) {
+              console.log(currentDate);
+              if (
+                currentDate === response.data[i].DateOfDuty.substring(0, 10)
+              ) {
+                setTodaysDuty((t) => [...t, response.data[i]]);
+              }
+            }
+          }
+        });
+
         setLoginStatus(response.data.user[0].Role);
       } else {
         setLoginStatus("false");
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    Axios.get("http://localhost:3001/attendanceMarked").then((response) => {
-      if (response.data.error) {
-        setError(response.data.error)
-      } else {
-        setMessage(response.data.message);
-        setCurrentReadyTime(response.data.result[0].Ready_Time)
       }
     });
   }, []);
@@ -52,16 +67,17 @@ function GardenerProfile() {
     });
   };
 
-  const submitAttendance = (event) => {
+  const markAttendance = (event) => {
     event.preventDefault();
 
+    setIsChecked(true)
+
     const cd = new Date(Date.now());
-    const dateOfWork =
+    const dateOfDuty =
       cd.getFullYear() + "-" + (cd.getMonth() + 1) + "-" + cd.getDate();
 
     Axios.post("http://localhost:3001/markAttendance", {
-      readyTime: readyTime,
-      dateOfWork: dateOfWork,
+      dateOfDuty: dateOfDuty,
     }).then((response) => {
       if (response.data.message) {
         console.log(response.data.message);
@@ -81,29 +97,56 @@ function GardenerProfile() {
       <div className="container">
         <div className="box">
           <h1>Welcome, {email}</h1>
-          <p style={{ color: "#FFF" }}>Current ready time: {currentReadyTime}</p>
-          <p style={{ color: "#FFF" }}>{message}</p>
-          {currentReadyTime === 0 &&
-          <form method="POST">
-            <div className="inputdetails">
-              <div className="input-box">
-                <label className="label">Time available</label>
-                <input
-                  type="number"
-                  name="timeavailable"
-                  max="24"
-                  onChange={(e) => setReadyTime(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="button-holder">
-              <button onClick={(e) => submitAttendance(e)}>
-                Mark attendance
-              </button>
-            </div>
+          <h1> Today's duty </h1>
+          {todaysDuty.length > 0 && (
+            <table style={{ border: "1px solid white" }}>
+              <tbody>
+                <tr>
+                  <td>Date</td>
+                  <td>ARID</td>
+                  <td>Duty Time</td>
+                  <td>Attendance</td>
+                </tr>
+                {todaysDuty.map((w, index) => (
+                  <tr key={w.DateOfDuty + w.ARID}>
+                    <td>{w.DateOfDuty.substring(0, 10)}</td>
+                    <td>{w.ARID}</td>
+                    <td>{w.dutyTime}</td>
+                    <td><input
+                      type="checkbox"
+                      checked={isChecked}
+                      disabled={w.Status === "P" ? true : false}
+                      onChange={(e) => markAttendance(e)}
+                    ></input></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+          <h1>This week's duty</h1>
+          {weeklyDuty.length > 0 && (
+            <table style={{ border: "1px solid white" }}>
+              <tbody>
+                <tr>
+                  <td>Date</td>
+                  <td>ARID</td>
+                  <td>Duty Time</td>
+                  <td>Status</td>
+                </tr>
+                {weeklyDuty.map((w, index) => (
+                  <tr key={w.DateOfDuty + w.ARID}>
+                    <td>{w.DateOfDuty.substring(0, 10)}</td>
+                    <td>{w.ARID}</td>
+                    <td>{w.dutyTime}</td>
+                    <td>{w.Status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
 
-            <p style={{ color: "#ed5c49" }}>{error}</p>
-          </form>}
+          <p style={{ color: "#ed5c49" }}>{error}</p>
+
           <div className="button-holder">
             <button onClick={(e) => logoutUser(e)}> Log out </button>
           </div>

@@ -11,6 +11,11 @@ import { useSidebar } from "./mechanicsidebar/SidebarHook";
 function MechanicProfile() {
   const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
+  const [error, setError] = useState("");
+  const [toolsAssigned, setToolsAssigned] = useState([]);
+
+  const [repairedTool, setRepairedTool] = useState("");
+  const [amount, setAmount] = useState(0);
 
   const { isOpen, toggle } = useSidebar();
 
@@ -27,6 +32,16 @@ function MechanicProfile() {
     });
   }, []);
 
+  useEffect(() => {
+    Axios.get("http://localhost:3001/toolsAssigned").then((response) => {
+      if (response.data.message) {
+        setError(response.data.message);
+      } else {
+        setToolsAssigned(response.data);
+      }
+    });
+  }, []);
+
   const logoutUser = (event) => {
     event.preventDefault();
 
@@ -34,6 +49,28 @@ function MechanicProfile() {
 
     Axios.post("http://localhost:3001/logout", {}).then((response) => {
       setLoginStatus("false");
+    });
+  };
+
+  const markToolAsRepaired = (event) => {
+    event.preventDefault();
+
+    Axios.post("http://localhost:3001/markToolAsRepaired", {
+      TID: repairedTool,
+      amount: amount,
+    }).then((response) => {
+      if (response.data.error) {
+        setError(response.data.error);
+      } else {
+        setError(response.data.message);
+        Axios.get("http://localhost:3001/toolsAssigned").then((response) => {
+          if (response.data.error) {
+            setError(response.data.error);
+          } else {
+            setToolsAssigned(response.data);
+          }
+        });
+      }
     });
   };
 
@@ -45,10 +82,62 @@ function MechanicProfile() {
     <div>
       <Sidebar isOpen={isOpen} toggle={toggle} />
       <NavBar toggle={toggle} />
-      <div className="adminContainer">
-        <div className="adminBox">
+      <div className="container">
+        <div className="box">
           <h1>Welcome, {email}</h1>
-          <h1>You are a mechanic!</h1>
+          <h1>Tools assigned</h1>
+          {toolsAssigned.length > 0 ? (
+            <div>
+              <table style={{ border: "1px solid white" }}>
+                <tbody>
+                  <tr>
+                    <td>TID</td>
+                    <td>TName</td>
+                  </tr>
+                  {toolsAssigned.map((t, index) => (
+                    <tr key={t.TID}>
+                      <td>{t.TID}</td>
+                      <td>{t.TName}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <form>
+                <div className="inputdetails">
+                  <div className="input-box">
+                    <label className="label">Repaired tool</label>
+                    <select
+                      style={{ fontSize: "20px" }}
+                      value={repairedTool}
+                      required
+                      onChange={(e) => setRepairedTool(e.target.value)}
+                    >
+                      <option value="">Select</option>
+                      {toolsAssigned.map((t, index) => (
+                        <option value={t.TID} key={t.TID}>
+                          {t.TID}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="input-box">
+                    <label className="label">Payment amount</label>
+                    <input
+                      type="text"
+                      onChange={(e) => setAmount(e.target.value)}
+                    ></input>
+                  </div>
+                </div>
+              </form>
+              <div className="button-holder">
+                <button onClick={(e) => markToolAsRepaired(e)}>
+                  {" "}
+                  Mark tool as repaired{" "}
+                </button>
+              </div>
+            </div>
+          ): <p>No tools assigned.</p>}
+          <p style={{ color: "#ed5c49" }}>{error}</p>
           <div className="button-holder">
             <button onClick={(e) => logoutUser(e)}> Log out </button>
           </div>
