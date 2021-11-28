@@ -14,14 +14,20 @@ CREATE TABLE Room (RoomID VARCHAR(20) PRIMARY KEY, Rent INT, Category CHAR(1));
 
 CREATE TABLE Guest (GID VARCHAR(20) PRIMARY KEY, GName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
 
-CREATE TABLE Staff (STID VARCHAR(20) PRIMARY KEY, STName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50), SType VARCHAR(20));
+CREATE TABLE Staff (STID VARCHAR(20) PRIMARY KEY, STName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE,
+Email VARCHAR(50), SType VARCHAR(20), FOREIGN KEY(SType) REFERENCES StaffSalary (SType));
 
 CREATE TABLE Food (FID VARCHAR(20) PRIMARY KEY, FName VARCHAR(50), Price FLOAT(2));
 
 CREATE TABLE Admin (AID VARCHAR(20) PRIMARY KEY, AName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
 
+CREATE TABLE StaffSalary (SType VARCHAR(20) PRIMARY KEY, Salary INT DEFAULT 0);
+
 CREATE TABLE FoodBookings (FBID VARCHAR(20) PRIMARY KEY, GID VARCHAR(20), FID VARCHAR(20), FName VARCHAR(50), Quantity INT, OrderPrice INT, DateOfOrder DATE, PaymentStatus BOOLEAN DEFAULT false,
 FOREIGN KEY(GID) REFERENCES Guest(GID), FOREIGN KEY(FID) REFERENCES Food(FID));
+
+CREATE TABLE Expenditures (Year INT, Month INT, GHID VARCHAR(20), TotalSalaryPaid INT, TotalRoomCosts INT,
+OtherBills INT, PRIMARY KEY (Year, Month, GHID), FOREIGN KEY (GHID) REFERENCES Guesthouse(GHID));
 
 // Amrades stuff
 
@@ -71,6 +77,8 @@ FOREIGN KEY (CID) REFERENCES Customer(CID), FOREIGN KEY (SHID) REFERENCES Shopow
 // Sinan stuff
 CREATE TABLE Gardener (GDID VARCHAR(20) PRIMARY KEY, GDName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
 
+CREATE TABLE Mechanic (MID VARCHAR(20) PRIMARY KEY, MName VARCHAR(30), ContactNum VARCHAR(11), DOB DATE, Email VARCHAR(50));
+
 CREATE TABLE Gattendance (GDID VARCHAR(20), Ready_Time INT, DateOfWork DATE, FOREIGN KEY (GDID) REFERENCES Gardener(GDID));
 
 CREATE TABLE Area (ARID VARCHAR(20) PRIMARY KEY, time INT, type VARCHAR(20));
@@ -116,8 +124,6 @@ CREATE TABLE StaffDutyLog LIKE StaffDutyRoster;
 CREATE TABLE roomOf 
 (RoomID VARCHAR(20), GHID VARCHAR(20), FOREIGN KEY (RoomID) REFERENCES Room(RoomID), 
 FOREIGN KEY (GHID) REFERENCES GuestHouse(GHID));
-
-CREATE TABLE Receipt ();
 
 CREATE TABLE RoomBookings (RBID VARCHAR(20) PRIMARY KEY, RoomID VARCHAR(20), 
 GID VARCHAR(20), DateOfBooking DATE, ApprovalStatus CHAR(1) DEFAULT "P", StartDate DATE, EndDate DATE, Price INT,
@@ -1052,6 +1058,86 @@ BEGIN
 	DELETE FROM staffdutyroster;
 
 END $$
+
+DELIMITER ;
+---------------------------------------------------------------------------------------------------
+// procedure to generate expenditure of guesthouse
+
+
+call generateexpenditure(2021, 11, "GH100", 127);
+
+DELIMITER $$
+
+CREATE PROCEDURE generateExpenditure (IN Year_t INT, IN Month_t INT, IN GHID_t VARCHAR(20), IN OtherBills_t INT)
+BEGIN
+	DECLARE i INT;
+	DECLARE j INT;
+	DECLARE n1 INT;
+	DECLARE n2 INT;
+	DECLARE n3 INT;
+	DECLARE totalSalary INT;
+	DECLARE totalRoomCosts_t INT;
+	DECLARE tempSTID VARCHAR(20);
+	DECLARE tempSalary INT;
+	DECLARE tempShift VARCHAR(100);
+	DECLARE tempPrice INT;
+
+	SET i = 0;
+	SET j = 0;
+	SET n1 = 0;
+	SET n2 = 0;
+	SET n3 = 0;
+	SET totalSalary = 0;
+	SET totalRoomCosts_t = 0;
+
+	CREATE TEMPORARY TABLE dutylog LIKE staffdutylog;
+	INSERT INTO dutylog SELECT * FROM staffdutylog WHERE MONTH(Date) = Month_t AND YEAR(Date) = Year_t; 
+	
+	CREATE TEMPORARY TABLE roomsBookedInThisMonth LIKE roombookings;
+	INSERT INTO roomsBookedInThisMonth (SELECT * FROM roombookings WHERE MONTH(DateOfBooking) = Month_t AND YEAR(DateOfBooking) = Year_t AND RoomID IN (SELECT RoomID FROM roomof WHERE GHID = GHID_t)); 
+
+	SELECT COUNT(*) INTO n1 FROM staff;
+	SELECT COUNT(*) INTO n2 FROM dutylog;
+	SELECT COUNT(*) INTO n3 FROM roomsBookedInThisMonth;
+
+	WHILE i<n1 DO
+	   SELECT STID INTO tempSTID FROM staff LIMIT i,1;
+	   SELECT Salary INTO tempSalary FROM StaffSalary WHERE SType = (SELECT SType FROM staff WHERE STID = tempSTID);
+	   
+	   WHILE j<n2 DO
+	      SELECT Shift_1 INTO tempShift FROM dutylog LIMIT j,1;
+
+              IF LOCATE(tempSTID, tempShift) != 0 THEN
+	         SET totalSalary = totalSalary + tempSalary*8;
+	      END IF;
+
+	      SELECT Shift_2 INTO tempShift FROM dutylog LIMIT j,1;
+	      
+	      IF LOCATE(tempSTID, tempShift) != 0 THEN
+	         SET totalSalary = totalSalary + tempSalary*8;
+	      END IF;
+
+	      SET j = j+1;
+   	   END WHILE; 
+	SET j = 0;
+	SET i = i+1;
+	END WHILE;
+
+	SET i = 0;
+
+	WHILE i<n3 DO
+	   SELECT Price INTO tempPrice FROM roomsBookedInThisMonth LIMIT i,1;
+	   SET totalRoomCosts_t = totalRoomCosts_t + tempPrice;
+	   SET i = i+1;
+	END WHILE;
+
+	SET totalRoomCosts_t = totalRoomCosts_t/10;
+	
+	INSERT INTO expenditures VALUES (Year_t, Month_t, GHID_t, totalSalary, totalRoomCosts_t, OtherBills_t);
+
+	DROP TABLE dutylog;
+	DROP TABLE roomsBookedInThisMonth;
+END$$
 
 DELIMITER ;
 ---------------------------------------------------------------------------------------------------

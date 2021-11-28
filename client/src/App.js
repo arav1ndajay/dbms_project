@@ -29,6 +29,7 @@ import CustomerFeedback from "./pages/market/customer/customerfeedback";
 import GardenerTools from "./pages/garden/gardener/gardenertools";
 import FoodAdmin from "./pages/admin/foodadmin";
 import OrderFood from "./pages/guesthouse/guest/orderfood";
+import StaffProfile from "./pages/guesthouse/staff/staffprofile";
 
 function App() {
   Axios.defaults.withCredentials = true;
@@ -91,6 +92,11 @@ function App() {
           exact
           path="/guestprofile/orderfood"
           element={<OrderFood />}
+        ></Route>
+        <Route
+          exact
+          path="/staffprofile"
+          element={<StaffProfile />}
         ></Route>
         <Route
           exact

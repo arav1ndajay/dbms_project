@@ -63,6 +63,51 @@ module.exports = function (app, db) {
     }
   });
 
+  app.get("/getStaffSalaries", (req, res) => {
+    if (req.session.user !== undefined) {
+      if (req.session.user[0].Role == "admin") {
+        db.query("SELECT * FROM staffsalary", (err, result) => {
+          if (err) {
+            res.send({ message: "Error occurred. Please try again" });
+          } else {
+            console.log(result);
+            res.send(result);
+          }
+        });
+      } else {
+        res.send({ message: "You are not an admin" });
+      }
+    } else {
+      res.send({ message: "No session found" });
+    }
+  });
+
+  app.post("/updateSalary", (req, res) => {
+    const SType = req.body.SType;
+    const salary = req.body.salary;
+
+    if (req.session.user !== undefined) {
+      if (req.session.user[0].Role == "admin") {
+        db.query(
+          "UPDATE staffsalary SET Salary = ? WHERE SType = ?",
+          [salary, SType],
+          (err, result) => {
+            if (err) {
+              res.send({ error: "Error occurred. Please try again" });
+            } else {
+
+              res.send({message: "Salary updated successfully."});
+            }
+          }
+        );
+      } else {
+        res.send({ error: "You are not an admin" });
+      }
+    } else {
+      res.send({ error: "No session found" });
+    }
+  });
+
   app.get("/getWeeklySchedule", (req, res) => {
     if (req.session.user !== undefined) {
       if (req.session.user[0].Role == "admin") {

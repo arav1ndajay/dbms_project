@@ -24,6 +24,10 @@ function StaffAdmin() {
   const [weekToViewLog, setWeekToViewLog] = useState("");
   const [error, setError] = useState("");
   const [updateError, setUpdateError] = useState("");
+  const [staffSalaries, setStaffSalaries] = useState([]);
+
+  const [SType, setSType] = useState("chscook");
+  const [newSalary, setNewSalary] = useState(0);
 
   const { isOpen, toggle } = useSidebar();
 
@@ -83,48 +87,18 @@ function StaffAdmin() {
     });
   }, []);
 
-  // useEffect(() => {
-  //   setScheduleLoading(true);
-
-  //   const cd = new Date(Date.now());
-  //   const currentDate =
-  //     cd.getFullYear() + "-" + (cd.getMonth() + 1) + "-" + cd.getDate();
-
-  //   Axios.post("http://localhost:3001/getLoggedData", {
-  //     startDate: currentDate,
-  //     endDate: currentDate,
-  //   }).then((response) => {
-  //     if (response.data.message) setError(response.data.message);
-  //     else {
-  //       console.log(response.data);
-  //       setDataIsLogged(true);
-  //     }
-  //   });
-  // }, []);
-
   useEffect(() => {
     Axios.get("http://localhost:3001/getStaffDetails").then((response) => {
       if (response.data.message) setError(response.data.message);
 
       setStaffDetails(response.data);
+      Axios.get("http://localhost:3001/getStaffSalaries").then((response) => {
+        if (response.data.message) setError(response.data.message);
+
+        setStaffSalaries(response.data);
+      });
     });
   }, []);
-
-  // const getWeeklySchedule = (event) => {
-  //   event.preventDefault();
-
-  //   setScheduleLoading(true);
-
-  //   Axios.get("http://localhost:3001/getWeeklySchedule").then((response) => {
-  //     if (response.data.message) setError(response.data.message);
-
-  //     setScheduleLoading(weeklySchedule);
-
-  //     setScheduleLoading(false);
-
-  //     console.log(response.data);
-  //   });
-  // };
 
   const generateStaffSchedule = (event) => {
     event.preventDefault();
@@ -191,7 +165,7 @@ function StaffAdmin() {
     event.preventDefault();
 
     Axios.get("http://localhost:3001/fixSchedule").then((response) => {
-      if (response.data.error) setError(response.data.message);
+      if (response.data.error) setError(response.data.error);
       else {
         setError(response.data.message);
 
@@ -211,6 +185,26 @@ function StaffAdmin() {
     });
   };
 
+  const updateSalary = (event) => {
+    event.preventDefault();
+
+    Axios.post("http://localhost:3001/updateSalary",{
+      SType: SType,
+      salary: newSalary
+    }).then((response) => {
+      if (response.data.error) setError(response.data.error);
+      else {
+        setError(response.data.message);
+
+        Axios.get("http://localhost:3001/getStaffSalaries").then((response) => {
+          if (response.data.message) setError(response.data.message);
+
+          setStaffSalaries(response.data);
+        });
+      }
+    });
+  };
+
   if (loginStatus === "loading")
     return <h1 style={{ color: "red" }}>Loading profile...</h1>;
   else if (loginStatus !== "admin") return <Navigate to="/" />;
@@ -221,7 +215,7 @@ function StaffAdmin() {
       <NavBar toggle={toggle} />
       <div className="adminContainer">
         {detailsToShow === "staffdetails" ? (
-          <div className="adminBox">
+          <div className="box">
             <select
               style={{ fontSize: "20px", marginTop: "10px" }}
               value={detailsToShow}
@@ -232,28 +226,82 @@ function StaffAdmin() {
               <option value="staffdutylog"> Duty Log </option>
               <option value="staffdetails"> Staff details </option>
             </select>
-            <h1>Staff details</h1>
+            <h1 style={{ marginBottom: "2px" }}>Staff details</h1>
             {staffDetails.length > 0 ? (
-              <table>
-                <tbody>
-                  <tr>
-                    <td>STID</td>
-                    <td>STName</td>
-                    <td>Contact Number</td>
-                    <td>Staff Type</td>
-                  </tr>
-                  {staffDetails.map((st, index) => (
-                    <tr key={st.STID}>
-                      <td>{st.STID}</td>
-                      <td>{st.STName}</td>
-                      <td>{st.ContactNum}</td>
-                      <td>{st.SType}</td>
+              <div>
+                <table style={{ border: "1px solid white" }}>
+                  <tbody>
+                    <tr>
+                      <td>STID</td>
+                      <td>STName</td>
+                      <td>Contact Number</td>
+                      <td>Staff Type</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                    {staffDetails.map((st, index) => (
+                      <tr key={st.STID}>
+                        <td>{st.STID}</td>
+                        <td>{st.STName}</td>
+                        <td>{st.ContactNum}</td>
+                        <td>{st.SType}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
-              <p>No staff available</p>
+              <p>No staff available.</p>
+            )}
+            <h1 style={{ marginBottom: "2px" }}>Staff salary</h1>
+            {staffSalaries.length > 0 ? (
+              <div>
+                <table style={{ border: "1px solid white" }}>
+                  <tbody>
+                    <tr>
+                      <td>Staff type</td>
+                      <td>Hourly salary</td>
+                    </tr>
+                    {staffSalaries.map((st, index) => (
+                      <tr key={st.SType}>
+                        <td>{st.SType}</td>
+                        <td>{st.Salary}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <form method="POST">
+                  <div className="inputdetails">
+                    <div className="input-box">
+                      <label className="label">Staff type</label>
+                      <select
+                        style={{ fontSize: "20px" }}
+                        value={SType}
+                        required
+                        onChange={(e) => setSType(e.target.value)}
+                      >
+                        <option value="chscook"> CHS Cook </option>
+                        <option value="cleaner"> Cleaner </option>
+                        <option value="cookhelper"> Cook Helper </option>
+                        <option value="regcook"> Regular Cook </option>
+                      </select>
+                    </div>
+                    <div className="input-box">
+                      <label className="label">New salary</label>
+                      <input
+                        type="number"
+                        onChange={(e) => setNewSalary(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="button-holder">
+                    <button onClick={(e) => updateSalary(e)}>
+                      Update salary
+                    </button>
+                  </div>
+                  <p style={{ color: "#ed5c49" }}>{error}</p>
+                </form>
+              </div>
+            ) : (
+              <p>No salary details available.</p>
             )}
           </div>
         ) : detailsToShow === "staffscheduler" ? (

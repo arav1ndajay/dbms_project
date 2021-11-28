@@ -65,17 +65,46 @@ module.exports = function (app, db) {
     }
   });
 
-  app.get("/getAllOrders", (req, res) => {
+  app.get("/getAllUnpaidOrders", (req, res) => {
     if (req.session.user !== undefined) {
       if (req.session.user[0].Role == "admin") {
-        db.query("SELECT * FROM FoodBookings", (err, result) => {
-          if (err) {
-            res.send({ error: err.sqlMessage });
-          } else {
-            console.log(result);
-            res.send(result);
+        db.query(
+          "SELECT * FROM FoodBookings WHERE PaymentStatus = false",
+          (err, result) => {
+            if (err) {
+              res.send({ error: err.sqlMessage });
+            } else {
+              console.log(result);
+              res.send(result);
+            }
           }
-        });
+        );
+      } else {
+        res.send({ error: "You are not an admin." });
+      }
+    } else {
+      res.send({ error: "No session found" });
+    }
+  });
+
+  app.post("/getOrdersInAMonth", (req, res) => {
+    const month = req.body.month;
+    const year = req.body.year;
+
+    if (req.session.user !== undefined) {
+      if (req.session.user[0].Role == "admin") {
+        db.query(
+          "SELECT * FROM FoodBookings WHERE MONTH(DateOfOrder) = ? AND Year(DateOfOrder) = ? AND PaymentStatus = true",
+          [month, year],
+          (err, result) => {
+            if (err) {
+              res.send({ error: err.sqlMessage });
+            } else {
+              console.log(result);
+              res.send(result);
+            }
+          }
+        );
       } else {
         res.send({ error: "You are not an admin." });
       }
