@@ -7,9 +7,9 @@ import Axios from "axios";
 import NavBar from "./shopkeepernav/Navbar";
 import Sidebar from "./shopkeepersidebar/Sidebar";
 import { useSidebar } from "./shopkeepersidebar/SidebarHook";
-
+import Loader from "react-loader-spinner";
 function AddShopReceipt() {
-  const [email, setEmail] = useState("");
+
   const [loginStatus, setLoginStatus] = useState("loading");
   const [shopID, setShopID] = useState("");
   const [error, setError] = useState("");
@@ -25,21 +25,11 @@ function AddShopReceipt() {
   useEffect(() => {
     Axios.get("http://localhost:3001/login").then((response) => {
       if (response.data.loggedIn) {
-        setEmail(response.data.user[0].Email);
-
         Axios.post("http://localhost:3001/getShopID", {
           email: response.data.user[0].Email,
         }).then((response) => {
           if (response.data.message) setError(response.data.message);
           else setShopID(response.data[0].SHID);
-
-          // Axios.post("http://localhost:3001/getItemsInShop", {
-          //   SHID: response.data[0].SHID,
-          // }).then((response) => {
-          //   if (response.data.message) setError(response.data.message);
-          //   else setItemsInShop(response.data);
-          //   console.log(response.data);
-          // });
         });
 
         setLoginStatus(response.data.user[0].Role);
@@ -48,16 +38,6 @@ function AddShopReceipt() {
       }
     });
   }, []);
-
-  const logoutUser = (event) => {
-    event.preventDefault();
-
-    setLoginStatus("loading");
-
-    Axios.post("http://localhost:3001/logout", {}).then((response) => {
-      setLoginStatus("false");
-    });
-  };
 
   const addReceipt = (event) => {
     event.preventDefault();
@@ -85,7 +65,24 @@ function AddShopReceipt() {
   // };
 
   if (loginStatus === "loading")
-    return <h1 style={{ color: "red" }}>Loading profile...</h1>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus !== "shopkeeper") return <Navigate to="/" />;
 
   return (

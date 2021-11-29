@@ -6,9 +6,6 @@ import {
   NavIcon,
   NavMenu,
   NavMenuItem,
-  NavLinks,
-  NavBtn,
-  NavBtnLink,
 } from "./NavbarStyled";
 import { MenuOutline } from "@styled-icons/evaicons-outline";
 import "../../../App.css"
@@ -17,7 +14,7 @@ import { Link } from "react-router-dom";
 const NavBar = ({ toggle }) => {
   return (
     <Nav>
-      <NavLogo to="/">DBMSAdmin</NavLogo>
+      <NavLogo to="/">Admin</NavLogo>
       <NavbarContainer>
         <NavIcon onClick={toggle}>
           <MenuOutline />

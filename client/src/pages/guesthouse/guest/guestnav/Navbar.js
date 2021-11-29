@@ -7,8 +7,6 @@ import {
   NavMenu,
   NavMenuItem,
   NavLinks,
-  NavBtn,
-  NavBtnLink,
 } from "./NavbarStyled";
 import { MenuOutline } from "@styled-icons/evaicons-outline";
 
@@ -29,9 +27,6 @@ const NavBar = ({ toggle }) => {
           </NavMenuItem>
         </NavMenu>
       </NavbarContainer>
-      <NavBtn>
-        <NavBtnLink to="/Login">Profile</NavBtnLink>
-      </NavBtn>
     </Nav>
   );
 };

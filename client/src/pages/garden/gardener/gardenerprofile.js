@@ -7,15 +7,14 @@ import Axios from "axios";
 import NavBar from "./gardenernav/Navbar";
 import Sidebar from "./gardenersidebar/Sidebar";
 import { useSidebar } from "./gardenersidebar/SidebarHook";
-
+import Loader from "react-loader-spinner";
 function GardenerProfile() {
   const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const [weeklyDuty, setWeeklyDuty] = useState([]);
   const [todaysDuty, setTodaysDuty] = useState([]);
-  const [isChecked, setIsChecked] = useState(false)
+  const [isChecked, setIsChecked] = useState(false);
   const { isOpen, toggle } = useSidebar();
 
   Axios.defaults.withCredentials = true;
@@ -31,7 +30,6 @@ function GardenerProfile() {
           if (response.data.error) {
             setError(response.data.error);
           } else {
-            setMessage(response.data.message);
             console.log(response.data);
             setWeeklyDuty(response.data);
 
@@ -70,7 +68,7 @@ function GardenerProfile() {
   const markAttendance = (event) => {
     event.preventDefault();
 
-    setIsChecked(true)
+    setIsChecked(true);
 
     const cd = new Date(Date.now());
     const dateOfDuty =
@@ -87,7 +85,24 @@ function GardenerProfile() {
   };
 
   if (loginStatus === "loading")
-    return <h1 style={{ color: "red" }}>Loading profile...</h1>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus !== "gardener") return <Navigate to="/" />;
 
   return (
@@ -112,12 +127,14 @@ function GardenerProfile() {
                     <td>{w.DateOfDuty.substring(0, 10)}</td>
                     <td>{w.ARID}</td>
                     <td>{w.dutyTime}</td>
-                    <td><input
-                      type="checkbox"
-                      checked={isChecked}
-                      disabled={w.Status === "P" ? true : false}
-                      onChange={(e) => markAttendance(e)}
-                    ></input></td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        disabled={w.Status === "P" ? true : false}
+                        onChange={(e) => markAttendance(e)}
+                      ></input>
+                    </td>
                   </tr>
                 ))}
               </tbody>

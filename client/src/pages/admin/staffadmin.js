@@ -7,7 +7,7 @@ import Axios from "axios";
 import NavBar from "./adminnav/Navbar";
 import Sidebar from "./adminsidebar/Sidebar";
 import { useSidebar } from "./adminsidebar/SidebarHook";
-
+import Loader from "react-loader-spinner";
 function StaffAdmin() {
   const [loginStatus, setLoginStatus] = useState("loading");
   const [scheduleLoading, setScheduleLoading] = useState(true);
@@ -188,9 +188,9 @@ function StaffAdmin() {
   const updateSalary = (event) => {
     event.preventDefault();
 
-    Axios.post("http://localhost:3001/updateSalary",{
+    Axios.post("http://localhost:3001/updateSalary", {
       SType: SType,
-      salary: newSalary
+      salary: newSalary,
     }).then((response) => {
       if (response.data.error) setError(response.data.error);
       else {
@@ -206,7 +206,24 @@ function StaffAdmin() {
   };
 
   if (loginStatus === "loading")
-    return <h1 style={{ color: "red" }}>Loading profile...</h1>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus !== "admin") return <Navigate to="/" />;
 
   return (

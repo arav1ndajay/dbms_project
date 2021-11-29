@@ -7,8 +7,6 @@ import {
   NavMenu,
   NavMenuItem,
   NavLinks,
-  NavBtn,
-  NavBtnLink,
 } from "./NavbarStyled";
 import { MenuOutline } from "@styled-icons/evaicons-outline";
 

@@ -2,6 +2,7 @@ import "../../App.css";
 import Axios from "axios";
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
+import Loader from "react-loader-spinner";
 
 function Login() {
   const [role, setRole] = useState("customer");
@@ -42,7 +43,24 @@ function Login() {
   }, []);
 
   if (loginStatus === "loading")
-    return <div style={{ color: "red" }}>Loading...</div>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus === "admin") return <Navigate to="/adminprofile" />;
   else if (loginStatus === "gardener")
     return <Navigate to="/gardenerprofile" />;

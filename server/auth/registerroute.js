@@ -34,27 +34,27 @@ module.exports = function (app, db) {
     });
   });
 
-  app.post("/registerAdmin", (req, res) => {
-    const aname = req.body.aname;
-    const contactnum = req.body.contactnum;
-    const dob = req.body.dob;
-    const email = req.body.email;
+  // app.post("/registerAdmin", (req, res) => {
+  //   const aname = req.body.aname;
+  //   const contactnum = req.body.contactnum;
+  //   const dob = req.body.dob;
+  //   const email = req.body.email;
 
-    db.query(
-      "INSERT INTO Admin (AName, ContactNum, DOB, Email) VALUES (?,?,?,?)",
-      [aname, contactnum, dob, email],
-      (err, result) => {
-        if (err) {
-          res.send({ message: "An error occurred. Please try again." });
-        } else {
-          res.send({
-            message:
-              "Registered successfully! Please wait for verification before logging in.",
-          });
-        }
-      }
-    );
-  });
+  //   db.query(
+  //     "INSERT INTO Admin (AName, ContactNum, DOB, Email) VALUES (?,?,?,?)",
+  //     [aname, contactnum, dob, email],
+  //     (err, result) => {
+  //       if (err) {
+  //         res.send({ message: "An error occurred. Please try again." });
+  //       } else {
+  //         res.send({
+  //           message:
+  //             "Registered successfully! Please wait for verification before logging in.",
+  //         });
+  //       }
+  //     }
+  //   );
+  // });
 
   app.post("/registerGuest", (req, res) => {
     const gname = req.body.gname;

@@ -30,9 +30,14 @@ function Landing() {
   return (
     <div className="container">
       <div className="box">
-        <div className="header">
-          <h2>Welcome!</h2>
-        </div>
+        <h1
+          style={{
+            textAlign: "center",
+          }}
+        >
+          IITP Resource Management Portal
+        </h1>
+
         <div className="button-holder">
           <Link
             to={"/login"}

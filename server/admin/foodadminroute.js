@@ -52,7 +52,7 @@ module.exports = function (app, db) {
       if (req.session.user[0].Role == "admin") {
         db.query("DELETE FROM food WHERE FID = ?", [FID], (err, result) => {
           if (err) {
-            res.send({ message: "Error occurred. Please try again" });
+            res.send({ message: err.sqlMessage });
           } else {
             res.send({ message: "Food removed." });
           }
