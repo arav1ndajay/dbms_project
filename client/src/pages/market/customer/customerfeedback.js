@@ -7,7 +7,7 @@ import Axios from "axios";
 import NavBar from "./customernav/Navbar";
 import Sidebar from "./customersidebar/Sidebar";
 import { useSidebar } from "./customersidebar/SidebarHook";
-
+import Loader from "react-loader-spinner";
 function CustomerFeedback() {
   const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
@@ -77,7 +77,24 @@ function CustomerFeedback() {
   };
 
   if (loginStatus === "loading")
-    return <h1 style={{ color: "red" }}>Loading profile...</h1>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus !== "customer") return <Navigate to="/" />;
 
   return (

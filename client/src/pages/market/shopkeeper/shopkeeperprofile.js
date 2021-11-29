@@ -7,9 +7,8 @@ import Axios from "axios";
 import NavBar from "./shopkeepernav/Navbar";
 import Sidebar from "./shopkeepersidebar/Sidebar";
 import { useSidebar } from "./shopkeepersidebar/SidebarHook";
-
+import Loader from "react-loader-spinner";
 function ShopkeeperProfile() {
-  const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
   const [shopID, setShopID] = useState("");
   const [error, setError] = useState("");
@@ -28,8 +27,6 @@ function ShopkeeperProfile() {
   useEffect(() => {
     Axios.get("http://localhost:3001/login").then((response) => {
       if (response.data.loggedIn) {
-        setEmail(response.data.user[0].Email);
-
         Axios.post("http://localhost:3001/getShopID", {
           email: response.data.user[0].Email,
         }).then((response) => {
@@ -108,7 +105,24 @@ function ShopkeeperProfile() {
   };
 
   if (loginStatus === "loading")
-    return <h1 style={{ color: "red" }}>Loading profile...</h1>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus !== "shopkeeper") return <Navigate to="/" />;
 
   return (

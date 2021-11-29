@@ -7,9 +7,9 @@ import Axios from "axios";
 import NavBar from "./gardenernav/Navbar";
 import Sidebar from "./gardenersidebar/Sidebar";
 import { useSidebar } from "./gardenersidebar/SidebarHook";
+import Loader from "react-loader-spinner";
 
 function GardenerTools() {
-  const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
   const [error, setError] = useState("");
   const [availableTools, setAvailableTools] = useState([]);
@@ -24,7 +24,6 @@ function GardenerTools() {
   useEffect(() => {
     Axios.get("http://localhost:3001/login").then((response) => {
       if (response.data.loggedIn) {
-        setEmail(response.data.user[0].Email);
         setLoginStatus(response.data.user[0].Role);
       } else {
         setLoginStatus("false");
@@ -123,7 +122,24 @@ function GardenerTools() {
   };
 
   if (loginStatus === "loading")
-    return <h1 style={{ color: "red" }}>Loading profile...</h1>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus !== "gardener") return <Navigate to="/" />;
 
   return (

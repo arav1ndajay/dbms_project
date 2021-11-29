@@ -7,17 +7,17 @@ import Axios from "axios";
 import NavBar from "./adminnav/Navbar";
 import Sidebar from "./adminsidebar/Sidebar";
 import { useSidebar } from "./adminsidebar/SidebarHook";
+import Loader from "react-loader-spinner";
 
 function AreaRequestAdmin() {
   const [loginStatus, setLoginStatus] = useState("loading");
   const [areaType, setAreaType] = useState("");
   const [areaTime, setAreaTime] = useState(0);
   const [areasNotRequested, setAreasNotRequested] = useState([]);
-  const [areaMessage, setAreaMessage] = useState("")
+  const [areaMessage, setAreaMessage] = useState("");
   const [reqMessage, setReqMessage] = useState("");
   const [areaToRequest, setAreaToRequest] = useState("");
 
-  
   const [error, setError] = useState("");
 
   const { isOpen, toggle } = useSidebar();
@@ -39,7 +39,7 @@ function AreaRequestAdmin() {
       if (response.data.message) {
         setError(response.data.message);
       } else {
-        console.log(response.data)
+        console.log(response.data);
         setAreasNotRequested(response.data);
       }
     });
@@ -70,10 +70,27 @@ function AreaRequestAdmin() {
         setReqMessage(response.data.message);
       }
     });
-  }
+  };
 
   if (loginStatus === "loading")
-    return <h1 style={{ color: "red" }}>Loading profile...</h1>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus !== "admin") return <Navigate to="/" />;
 
   return (
@@ -134,6 +151,7 @@ function AreaRequestAdmin() {
 
             <p style={{ color: "#ed5c49" }}>{areaMessage}</p>
           </form>
+          <p style={{ color: "#ed5c49" }}>{error}</p>
         </div>
       </div>
     </div>

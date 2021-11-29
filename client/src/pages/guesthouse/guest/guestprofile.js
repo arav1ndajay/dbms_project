@@ -7,13 +7,12 @@ import Axios from "axios";
 import NavBar from "./guestnav/Navbar";
 import Sidebar from "./guestsidebar/Sidebar";
 import { useSidebar } from "./guestsidebar/SidebarHook";
-
+import Loader from "react-loader-spinner";
 function GuestProfile() {
   const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
   const [bookedRooms, setBookedRooms] = useState([]);
   const { isOpen, toggle } = useSidebar();
-  const [roomDetailsLoading, setRoomDetailsLoading] = useState(true);
   const [currentRooms, setCurrentRooms] = useState([])
 
   Axios.defaults.withCredentials = true;
@@ -66,7 +65,24 @@ function GuestProfile() {
   };
 
   if (loginStatus === "loading")
-    return <h1 style={{ color: "red" }}>Loading profile...</h1>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus !== "guest") return <Navigate to="/" />;
 
   return (

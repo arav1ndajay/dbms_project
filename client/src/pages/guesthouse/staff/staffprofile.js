@@ -7,9 +7,8 @@ import Axios from "axios";
 import NavBar from "./staffnav/Navbar";
 import Sidebar from "./staffsidebar/Sidebar";
 import { useSidebar } from "./staffsidebar/SidebarHook";
-
+import Loader from "react-loader-spinner";
 function StaffProfile() {
-  const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("loading");
   const [error, setError] = useState("");
   const [weeklySchedule, setWeeklySchedule] = useState([]);
@@ -20,7 +19,6 @@ function StaffProfile() {
   useEffect(() => {
     Axios.get("http://localhost:3001/login").then((response) => {
       if (response.data.loggedIn) {
-        setEmail(response.data.user[0].Email);
         setLoginStatus(response.data.user[0].Role);
       } else {
         setLoginStatus("false");
@@ -61,7 +59,24 @@ function StaffProfile() {
   };
 
   if (loginStatus === "loading")
-    return <h1 style={{ color: "red" }}>Loading profile...</h1>;
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0",
+          height: "100vh",
+        }}
+      >
+        <Loader
+          type="Circles"
+          color="rgb(164, 121, 182)"
+          height={80}
+          width={80}
+        />
+      </div>
+    );
   else if (loginStatus !== "staff") return <Navigate to="/" />;
 
   return (
@@ -82,7 +97,7 @@ function StaffProfile() {
                     <td style={{ textAlign: "center" }}>Shift 1</td>
                     <td style={{ textAlign: "center" }}>Shift 2</td>
                   </tr>
-                  {weeklySchedule.map((s, index) => (
+                  {weeklySchedule.map((s) => (
                     <tr key={s.Date}>
                       <td>{s.Date.substring(0, 10)}</td>
                       <td>{s.GHID}</td>

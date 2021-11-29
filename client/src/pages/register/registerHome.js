@@ -1,6 +1,6 @@
 import "../../index.css";
 import { useState, useEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import Axios from "axios";
 
 function RegisterHome() {
